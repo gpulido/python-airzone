@@ -3,6 +3,7 @@
 import time
 import serial
 import logging
+import threading
 from innobus import Machine
 from threading  import Lock
 
@@ -22,7 +23,7 @@ UNIT = 0x1
 
 class Gateway():   
 
-    def __init__(self, url, port, discover = True):
+    def __init__(self, url, port, machineId = 1, discover = True):
         """                
         Arguments:
             url {String} -- Address where the master is listening
@@ -34,9 +35,12 @@ class Gateway():
         """
         self.url = url
         self.port = port
+        self._machineId = machineId
         self._lock = Lock()
         self.config_client()
-    
+        if discover:
+            self.discover()
+        
     def config_client(self):
         """
         Configure the serial port
@@ -45,6 +49,26 @@ class Gateway():
             self.client = ModbusClient(self.url, port=self.port)
             self.client.connect()
     
+    def discover(self):
+        """[summary]
+            Discover all devices registered on the usb-commeo        
+        """
+        self._Machine = Machine(self, self._machineId)
+        self.devices = self._Machine.get_zones()
+    
+    def init_polling(self):
+        self._poll = True
+        self.t = threading.Thread(target = self.update_machine_state)
+        self.t.start()
+    
+    def stop_polling(self):
+        self._poll = False
+
+    def update_machine_state(self):
+        while(self._poll):
+            self._Machine.retrieve_machine_status()
+            time.sleep(2)
+
     def read_holding_registers(self, machineid, address, num_registers): #innobus doc type 3
         with self._lock:
             response = self.client.read_holding_registers(address, num_registers, unit = machineid)
@@ -59,9 +83,6 @@ class Gateway():
         with self._lock:
             self.client.write_register(address,value, unit = machineid)
 
-
-
 if __name__ == '__main__':
-    gateway = Gateway('modbus.local', 5020)
-    machine = Machine(gateway, 1)
+    gateway = Gateway('modbus.local', 5020, 1)
     

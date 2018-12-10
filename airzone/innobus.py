@@ -1,27 +1,23 @@
 import logging
 from protocol import *
-import threading
 import datetime
 import time
 
 
 class Machine():
 
-    def __init__(self, gateway, machineId):
+    def __init__(self, gateway, machineId, discover_zones = True):
         self._gateway = gateway
         self._machineId = machineId
         self._machine_state = None
         self.sync_clock()
-        self.discover_zones()
+        self._zones = []
+        if discover_zones:
+            self.discover_zones()
         self.retrieve_machine_status()
-        t = threading.Thread(target = self.update_machine_state)
-        t.start()
-        self.zones[0].get_local_temperature()
-    
-    def update_machine_state(self):
-        while(True):
-            self.retrieve_machine_status()
-            time.sleep(2)
+
+    def get_zones(self):
+        return self._zones
 
     def retrieve_machine_status(self):
         self._machine_state = self._gateway.read_input_registers(
@@ -129,7 +125,7 @@ class Zone():
     def get_max_signal_value(self):
         return state_value(self._zone_state, 2) / 10
 
-    def get_signal_value(self):
+    def get_signal_temperature_value(self):
         return state_value(self._zone_state, 3) / 10
 
     # ZONE CONFIGURATION
