@@ -1,6 +1,5 @@
 import base64
 
-
 def bitfield(n):
     '''
     Obtains the binary array from the number

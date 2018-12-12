@@ -4,7 +4,7 @@ import time
 import serial
 import logging
 import threading
-from innobus import Machine
+from airzone.innobus import Machine
 from threading  import Lock
 
 from pymodbus.client.sync import ModbusTcpClient as ModbusClient

@@ -1,5 +1,5 @@
 import logging
-from protocol import *
+from airzone.protocol import *
 import datetime
 import time
 

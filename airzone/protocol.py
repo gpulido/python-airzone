@@ -1,4 +1,4 @@
-from utils import *
+from airzone.utils import *
 import logging
 from enum import Enum
 
