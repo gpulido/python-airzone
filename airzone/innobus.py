@@ -10,11 +10,11 @@ class Machine():
         self._gateway = gateway
         self._machineId = machineId
         self._machine_state = None
-        self.sync_clock(gateway)
+        self.sync_clock()
         self._zones = []
         if discover_zones:
-            self.discover_zones(gateway)
-        self.retrieve_machine_status(gateway)
+            self.discover_zones()
+        self.retrieve_machine_status()
 
     def get_zones(self):
         return self._zones
