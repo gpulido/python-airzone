@@ -10,11 +10,11 @@ class Machine():
         self._gateway = gateway
         self._machineId = machineId
         self._machine_state = None
-        self.sync_clock()
+        self.sync_clock(gateway)
         self._zones = []
         if discover_zones:
-            self.discover_zones()
-        self.retrieve_machine_status()
+            self.discover_zones(gateway)
+        self.retrieve_machine_status(gateway)
 
     def get_zones(self):
         return self._zones
@@ -23,7 +23,7 @@ class Machine():
         self._machine_state = self._gateway.read_input_registers(
             self._machineId, 0, 21)
         for zone in self.zones:
-            zone.retrieve_zone_status()
+            zone.retrieve_zone_status(self._gateway)
 
     def sync_clock(self, force=False):
         current_clock = self._gateway.read_input_registers(
@@ -34,8 +34,7 @@ class Machine():
     def set_clock(self):
         d = datetime.datetime.now()
         value = date_as_number(d)
-        current_clock = self._gateway.write_single_register(
-            self._machineId, 4, value)
+        self._gateway.write_single_register(self._machineId, 4, value)
 
     def discover_zones(self):
         zones = self._gateway.read_input_registers(self._machineId, 9, 2)
@@ -44,10 +43,6 @@ class Machine():
             v + 8 for v in true_in_list(list(reversed(bitfield(zones[1]))))]
         config_zones = config_zones1 + config_zones2
         self.zones = [Zone(self, i + 1) for i in config_zones]
-
-
-    def retrieve_zone_status(self, zoneId):
-        return self._gateway.read_input_registers(self._machineId, 0, 21)
 
     def get_operation_mode(self):
         temp = state_value(self._machine_state, 0, 0, 8)
@@ -78,22 +73,22 @@ class Machine():
 class Zone():
 
     def __init__(self, machine, zoneId):
-        self.machine = machine
+        self._machine = machine
         self.zoneId = zoneId
         self._zone_state = None
         self.base_zone = zoneId * 256
         self.retrieve_zone_status()
 
     def retrieve_zone_status(self):
-        self._zone_state = self.machine._gateway.read_input_registers(
-            self.machine._machineId, self.base_zone, 13)
+        self._zone_state = self._machine.gateway.read_input_registers(
+            self._machine._machineId, self.base_zone, 13)
 
     # OPERATION ZONE MODE
     def get_sleep_mode(self):
         temp = bit_value(self._zone_state, 0, 0)
         return OnOff(temp)
 
-    def get_zone_mode(self):
+    def get_zone_programing_mode(self):
         temp = bit_value(self._zone_state, 0, 1)
         return OnOff(temp)
 

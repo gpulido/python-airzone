@@ -5,7 +5,7 @@ import serial
 import logging
 import threading
 from airzone.innobus import Machine
-from threading  import Lock
+from threading import Lock
 
 from pymodbus.client.sync import ModbusTcpClient as ModbusClient
 
@@ -21,14 +21,15 @@ log.setLevel(logging.DEBUG)
 
 UNIT = 0x1
 
-class Gateway():   
 
-    def __init__(self, url, port, machineId = 1, discover = True):
+class Gateway():
+
+    def __init__(self, url, port, machineId=1, discover=True):
         """                
         Arguments:
             url {String} -- Address where the master is listening
             port {String} -- Serial port string as it is used in pyserial
-        
+
         Keyword Arguments:
             discover {bool} -- True if the gateway should try to discover 
                                the devices on init (default: {True})
@@ -40,7 +41,7 @@ class Gateway():
         self.config_client()
         if discover:
             self.discover()
-        
+
     def config_client(self):
         """
         Configure the serial port
@@ -48,19 +49,19 @@ class Gateway():
         with self._lock:
             self.client = ModbusClient(self.url, port=self.port)
             self.client.connect()
-    
+
     def discover(self):
         """[summary]
             Discover all devices registered on the usb-commeo        
         """
         self._Machine = Machine(self, self._machineId)
         self.devices = self._Machine.get_zones()
-    
+
     def init_polling(self):
         self._poll = True
-        self.t = threading.Thread(target = self.update_machine_state)
+        self.t = threading.Thread(target=self.update_machine_state)
         self.t.start()
-    
+
     def stop_polling(self):
         self._poll = False
 
@@ -69,20 +70,30 @@ class Gateway():
             self._Machine.retrieve_machine_status()
             time.sleep(2)
 
-    def read_holding_registers(self, machineid, address, num_registers): #innobus doc type 3
+    # innobus doc type 3
+    def read_holding_registers(self, machineid, address, num_registers):
         with self._lock:
-            response = self.client.read_holding_registers(address, num_registers, unit = machineid)
+            response = self.client.read_holding_registers(
+                address, num_registers, unit=machineid)
+            logging.debug('read holding registers machineId:' + str(machineid) +
+                          ' address: ' + str(address) + ' num_registers: ' + str(num_registers))
+            logging.debug('response: ' + str(response.registers))
             return response.registers
 
-    def read_input_registers(self, machineid, address, num_registers): #innobus doc type 4
+    def read_input_registers(self, machineid, address, num_registers):  # innobus doc type 4
         with self._lock:
-            response = self.client.read_input_registers(address, num_registers, unit = machineid)
+            response = self.client.read_input_registers(
+                address, num_registers, unit=machineid)
+            logging.debug('read input registers machineId:' + str(machineid) +
+                          ' address: ' + str(address) + ' num_registers: ' + str(num_registers))
+            logging.debug('response: ' + str(response.registers))
             return response.registers
-    
+
     def write_single_register(self, machineid, address, value):
         with self._lock:
-            self.client.write_register(address,value, unit = machineid)
+            self.client.write_register(address, value, unit=machineid)
+
 
 if __name__ == '__main__':
     gateway = Gateway('modbus.local', 5020, 1)
-    
+    gateway.init_polling()

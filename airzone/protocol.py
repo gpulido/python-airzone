@@ -74,6 +74,7 @@ class RelayConfig(Enum):
 class LocalFancoilType(Enum):
     GRID = 0,
     FANCOIL = 1,
+    
 def state_value(state, address, init = 0, end = 15):
     return shifting(pad_right_list(bitfield(state[address]),16,0)[init:end+1])
 
