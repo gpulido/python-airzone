@@ -56,6 +56,7 @@ class Gateway():
         """
         self._Machine = Machine(self, self._machineId)
         self.devices = self._Machine.get_zones()
+        print(str(self.devices))
 
     def init_polling(self):
         self._poll = True

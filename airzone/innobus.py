@@ -78,6 +78,9 @@ class Zone():
         self._zone_state = None
         self.base_zone = zoneId * 256
         self.retrieve_zone_status()
+    
+    def __str__(self):
+        return "Zone with id: " + str(self.zoneId)
 
     def retrieve_zone_status(self):
         self._zone_state = self._machine.gateway.read_input_registers(
