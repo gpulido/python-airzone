@@ -97,3 +97,4 @@ class Gateway():
 if __name__ == '__main__':
     gateway = Gateway('modbus.local', 5020, 1)
     gateway.init_polling()
+

@@ -113,6 +113,7 @@ class Zone():
 
     def get_zone_mode(self):
         temp = state_value(self._zone_state, 0, 8, 10)
+        print("zone_mode " + str(temp))
         return ZoneMode(temp)
 
     ####
