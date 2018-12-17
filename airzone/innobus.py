@@ -83,7 +83,7 @@ class Zone():
         return "Zone with id: " + str(self.zoneId)
 
     def retrieve_zone_status(self):
-        self._zone_state = self._machine.gateway.read_input_registers(
+        self._zone_state = self._machine._gateway.read_input_registers(
             self._machine._machineId, self.base_zone, 13)
 
     # OPERATION ZONE MODE
