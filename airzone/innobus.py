@@ -19,25 +19,31 @@ class Machine():
     def get_zones(self):
         return self._zones
 
+    def read_registers(self, address, numRegisters):
+        return self._gateway.read_input_registers(
+            self._machineId, address, numRegisters)
+    
+    def write_register(self, address, value):
+        return self._gateway.write_single_register(
+            self._machineId, address, value)
+
     def retrieve_machine_status(self):
-        self._machine_state = self._gateway.read_input_registers(
-            self._machineId, 0, 21)
+        self._machine_state = self.read_registers(0, 21)
         for zone in self._zones:
             zone.retrieve_zone_status()
 
     def sync_clock(self, force=False):
-        current_clock = self._gateway.read_input_registers(
-            self._machineId, 4, 1)
+        current_clock = self.read_registers(4, 1)
         if current_clock[0] == 0 or force:
             self.set_clock()
 
     def set_clock(self):
         d = datetime.datetime.now()
         value = date_as_number(d)
-        self._gateway.write_single_register(self._machineId, 4, value)
+        self.write_register( 4, value)
 
     def discover_zones(self):
-        zones = self._gateway.read_input_registers(self._machineId, 9, 2)
+        zones = self.read_registers( 9, 2)
         config_zones1 = true_in_list(list(reversed(bitfield(zones[0]))))
         config_zones2 = [
             v + 8 for v in true_in_list(list(reversed(bitfield(zones[1]))))]
@@ -79,6 +85,13 @@ class Zone():
         self.base_zone = zoneId * 256
         self.retrieve_zone_status()
     
+    def read_registers(self, numRegisters):
+        return self._machine._gateway.read_input_registers(
+            self._machine._machineId, self.base_zone, 13)
+       
+    def write_register(self, address, value):
+        return self._machine.write_register(self.base_zone + address, value)
+
     def __str__(self):
         return "Zone with id: " + str(self.zoneId)
 
@@ -113,19 +126,35 @@ class Zone():
 
     def get_zone_mode(self):
         temp = state_value(self._zone_state, 0, 8, 10)
-        print("zone_mode " + str(temp))
         return ZoneMode(temp)
+    
+    # def set_zone_mode(self, ZoneMode):
+    #     self._machine.write_single_register()
 
     ####
 
     def get_min_signal_value(self):
-        return state_value(self._zone_state, 1) / 10
+        return self._zone_state[1] / 10
+    
+    def set_min_signal_value(self, value):
+        if value >= 18 or value <= 22:
+            self.write_register(1, value * 10)
 
     def get_max_signal_value(self):
-        return state_value(self._zone_state, 2) / 10
+        return self._zone_state[2] / 10
+    
+    def set_max_signal_value(self, value):
+        if value >= 25 or value <= 30:
+            self.write_register(1, value * 10)
+        self.write_register(2, value * 10)
 
     def get_signal_temperature_value(self):
-        return state_value(self._zone_state, 3) / 10
+        return self._zone_state[3] / 10
+    
+    def set_signal_temperature_value(self, value):
+        if value >= 18 or value <= 30:
+            self.write_register(1, value * 10)
+        self.write_register(3, value * 10)
 
     # ZONE CONFIGURATION
 
@@ -181,7 +210,7 @@ class Zone():
         return state_value(self._zone_state, 7)
 
     def get_remote_probe_temperature(self):
-        return state_value(self._zone_state, 8) / 10
+        return self._zone_state[8] / 10
 
     # Zone state register
     def get_is_zone_grid_opened(self):
@@ -229,4 +258,4 @@ class Zone():
     ###
 
     def get_local_temperature(self):
-        return state_value(self._zone_state, 10) / 10
+        return self._zone_state[10] / 10
