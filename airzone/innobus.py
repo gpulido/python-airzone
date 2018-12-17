@@ -22,7 +22,7 @@ class Machine():
     def retrieve_machine_status(self):
         self._machine_state = self._gateway.read_input_registers(
             self._machineId, 0, 21)
-        for zone in self.zones:
+        for zone in self._zones:
             zone.retrieve_zone_status()
 
     def sync_clock(self, force=False):
@@ -42,7 +42,7 @@ class Machine():
         config_zones2 = [
             v + 8 for v in true_in_list(list(reversed(bitfield(zones[1]))))]
         config_zones = config_zones1 + config_zones2
-        self.zones = [Zone(self, i + 1) for i in config_zones]
+        self._zones = [Zone(self, i + 1) for i in config_zones]
 
     def get_operation_mode(self):
         temp = state_value(self._machine_state, 0, 0, 8)
