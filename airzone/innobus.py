@@ -23,7 +23,7 @@ class Machine():
         self._machine_state = self._gateway.read_input_registers(
             self._machineId, 0, 21)
         for zone in self.zones:
-            zone.retrieve_zone_status(self._gateway)
+            zone.retrieve_zone_status()
 
     def sync_clock(self, force=False):
         current_clock = self._gateway.read_input_registers(
