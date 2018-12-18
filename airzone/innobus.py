@@ -145,16 +145,14 @@ class Zone():
     
     def set_max_signal_value(self, value):
         if value >= 25 or value <= 30:
-            self.write_register(1, value * 10)
-        self.write_register(2, value * 10)
+            self.write_register(2, value * 10)
 
     def get_signal_temperature_value(self):
         return self._zone_state[3] / 10
     
     def set_signal_temperature_value(self, value):
         if value >= 18 or value <= 30:
-            self.write_register(1, value * 10)
-        self.write_register(3, value * 10)
+            self.write_register(3, value * 10)
 
     # ZONE CONFIGURATION
 
