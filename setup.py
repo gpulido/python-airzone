@@ -15,7 +15,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 setup(
     
     name='python-airzone',  # Required    
-    version='0.0.13',  # Required  
+    version='0.0.14',  # Required  
     description='Python library for interfacing with Airzone using the modbus protocol',  # Required   
     long_description=long_description,  # Optional    
     url='https://github.com/gpulido/python-airzone',  # Optional

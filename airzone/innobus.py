@@ -152,7 +152,7 @@ class Zone():
     
     def set_signal_temperature_value(self, value):
         if value >= 18 or value <= 30:
-            self.write_register(3, value * 10)
+            self.write_register(3, int(value * 10)
 
     # ZONE CONFIGURATION
 
