@@ -1,29 +1,21 @@
 from airzone.utils import *
 import logging
 from enum import Enum
-
-
-class OnOff(Enum):
-    OFF = 0
-    ON = 1
-
+from array import array
 
 class MachineOperationMode(Enum):
     STOP = 0
     COLD = 1
     HOT = 2
     AIR = 3
+    HOT_AIR = 4
     HOTPLUS = 258
 
-
 class ZoneMode(Enum):
-    STOP = 0
-    COLD = 1
-    HOT_AIR = 2
-    AIR = 3
-    FLOOT_HOT = 4
-    HOTPLUS = 5
-
+    MANUAL = 0
+    MANUAL_SLEEP = 1
+    AUTOMATIC = 2
+    AUTOMATIC_SLEEP = 3
 
 class FancoilSpeed(Enum):
     AUTOMATIC = 0
@@ -76,10 +68,40 @@ class LocalFancoilType(Enum):
     FANCOIL = 1
 
 def state_value(state, address, init = 0, end = 15):
-    return shifting(pad_right_list(bitfield(state[address]),16,0)[init:end+1])
+    '''
+    init and end are included on the desired slice
+    '''
+    binary = format(state[address], '016b')
+    r_init = len(binary)-1-init
+    r_end = len(binary)-1-end 
+    kBitSubStr = binary[r_end : r_init+1]
+    return int(kBitSubStr, 2)
 
 def bit_value(state, address, bit):
-    return shifting(pad_right_list(bitfield(state[address]),16,0)[bit])
+    #return state_value(state, address, bit, bit)
+    temp = format(state[address], '016b')
+    return int(temp[len(temp)-1-bit])
+
+def change_range_bit_value(state, address, init_bit, num_bit, value):
+    if num_bit <= 0:
+        return state[address]
+    temp2 = list(format(state[address], '016b'))
+    idx = len(temp2)-init_bit-num_bit
+    idx2 = len(temp2)-init_bit
+    temp = list(format(value, '0'+str(num_bit)+ 'b'))
+    temp2[idx:idx2] = temp
+    return int("".join(temp2), 2)
+
+
+def change_bit_value(state, address, bit, value):
+    if value:
+        ch = '1'
+    else:
+        ch = '0'
+    temp = list(format(state[address], '016b'))
+    idx = len(temp)-1-bit
+    temp[idx] = ch
+    return int("".join(temp), 2)
 
 def date_as_number(date):
     l = bitfield(date.weekday() + 1)

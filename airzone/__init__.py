@@ -54,8 +54,7 @@ class Gateway():
             Discover all devices registered on the usb-commeo        
         """
         self._Machine = Machine(self, self._machineId)
-        self.devices = self._Machine.get_zones()
-        print(str(self.devices))
+        self.devices = list(filter(lambda z: z.zoneId != 0, self._Machine.get_zones()))
 
     def init_polling(self):
         self._poll = True
@@ -91,11 +90,37 @@ class Gateway():
 
     def write_single_register(self, machineid, address, value):
         with self._lock:
-            self.client.write_register(address, value, unit=machineid)
+            test = self.client.write_register(address, value, unit=machineid)
+            print(test)
 
 
 if __name__ == '__main__':
     gateway = Gateway('modbus.local', 5020, 1)
     a = gateway._Machine
+    z = a.get_zones()[0]
+    print(a._machine_state)
+    print (z._zone_state)
+    print (bool(z.is_tacto_on()))
+    print (z.get_signal_temperature_value())
+    print (z.get_signal_temperature_value())
+    print (z.is_floor_active())
+    print (z.is_sleep_on())
+    print (z.is_automatic_mode())
+    print (z.get_zone_mode())
+    from airzone.protocol import state_value
+    print (state_value(z._zone_state, 0, 0, 1))
+    print (format(z._zone_state[0], '016b'))
+    #a.get_zones()[0].turnoff_zone()
+    print(a.get_operation_mode())
+    from airzone.protocol import MachineOperationMode
+    a.set_operation_mode('HOTPLUS')
+    a.retrieve_machine_status()
+    print(a.get_operation_mode())
+    #print (a.get_zones()[0].is_zone_on())
+    #print(a.get_zones()[0]._zone_state)
+    #a.get_zones()[0].turnon_zone()
+    #gateway._Machine.retrieve_machine_status()
+    #print(a.get_zones()[0]._zone_state)
+    #print (a.get_zones()[0].is_zone_on())
     #gateway.init_polling()
 
