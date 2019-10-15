@@ -15,8 +15,7 @@ from pymodbus.client.sync import ModbusTcpClient as ModbusClient
 # FORMAT = ('%(asctime)-15s %(threadName)-15s '
 #           '%(levelname)-8s %(module)-15s:%(lineno)-8s %(message)s')
 # logging.basicConfig(format=FORMAT)
-# log = logging.getLogger()
-# log.setLevel(logging.DEBUG)
+_LOGGER = logging.getLogger()
 
 UNIT = 0x1
 
@@ -50,8 +49,8 @@ class Gateway():
             self.client.connect()
 
     def discover(self):
-        """[summary]
-            Discover all devices registered on the usb-commeo        
+        """
+        Discover all devices registered on the usb-commeo        
         """
         self._Machine = Machine(self, self._machineId)
         self.devices = list(filter(lambda z: z.zoneId != 0, self._Machine.get_zones()))
@@ -74,24 +73,24 @@ class Gateway():
         with self._lock:
             response = self.client.read_holding_registers(
                 address, num_registers, unit=machineid)
-            logging.debug('read holding registers machineId:' + str(machineid) +
+            _LOGGER.debug('read holding registers machineId:' + str(machineid) +
                           ' address: ' + str(address) + ' num_registers: ' + str(num_registers))
-            logging.debug('response: ' + str(response.registers))
+            _LOGGER.debug('response: ' + str(response))
             return response.registers
 
     def read_input_registers(self, machineid, address, num_registers):  # innobus doc type 4
         with self._lock:
             response = self.client.read_input_registers(
                 address, num_registers, unit=machineid)
-            logging.debug('read input registers machineId:' + str(machineid) +
-                          ' address: ' + str(address) + ' num_registers: ' + str(num_registers))
-            logging.debug('response: ' + str(response.registers))
+            _LOGGER.debug('read input registers machineId:' + str(machineid) +
+                          ' address: ' + str(address) + ' num_registers: ' + str(num_registers))            
+            _LOGGER.debug('response: ' + str(response))
             return response.registers
 
     def write_single_register(self, machineid, address, value):
         with self._lock:
             test = self.client.write_register(address, value, unit=machineid)
-            print(test)
+            _LOGGER.debug(test)
 
 
 if __name__ == '__main__':

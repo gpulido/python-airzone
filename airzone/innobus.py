@@ -3,13 +3,22 @@ from airzone.protocol import *
 import datetime
 import time
 
+innobus_machine_config = {
+    'num_registers': 23
+}
+
+flexa_machine_config =  {
+    'num_registers': 25
+}
+
 
 class Machine():
 
-    def __init__(self, gateway, machineId, discover_zones=True):
+    def __init__(self, gateway, machineId, discover_zones=True, machine_config = innobus_machine_config):
         self._gateway = gateway
         self._machineId = machineId
         self._machine_state = None
+        self._config = innobus_machine_config
         self.sync_clock()
         self._zones = []
         if discover_zones:
@@ -28,7 +37,7 @@ class Machine():
             self._machineId, address, value)
 
     def retrieve_machine_status(self, retrieve_zones = True):
-        self._machine_state = self.read_registers(0, 21)
+        self._machine_state = self.read_registers(0, self._config['num_registers'])
         if retrieve_zones:
             for zone in self._zones:
                 zone.retrieve_zone_status()
@@ -74,15 +83,23 @@ class Machine():
     # def machine_operation_mode(self, operation_mode):
     #     self._gateway.write_single_register(self._machineId, "00H", operation_mode.value)
 
+innobus_zone_config = {
+    'num_registers': 13
+}
+
+flexa_zone_config =  {
+    'num_registers': 14
+}
 
 class Zone():
 
-    def __init__(self, machine, zoneId):
+    def __init__(self, machine, zoneId, config = innobus_zone_config):
         self._machine = machine
         self.zoneId = zoneId
         self._zone_state = None
         self.base_zone = zoneId * 256
         self.retrieve_zone_status()
+        self._config = innobus_zone_config
 
     def read_registers(self, numRegisters):
         return self._machine._gateway.read_input_registers(
@@ -103,8 +120,7 @@ class Zone():
                 " Hold On: " + str(self.is_zone_hold())
 
     def retrieve_zone_status(self):
-        self._zone_state = self._machine._gateway.read_input_registers(
-            self._machine._machineId, self.base_zone, 13)
+        self._zone_state = self.read_registers(self._config['num_registers'])
 
     # OPERATION ZONE MODE
     def is_sleep_on(self):
