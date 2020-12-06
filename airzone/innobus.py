@@ -288,3 +288,6 @@ class Zone():
 
     def get_local_temperature(self):
         return self._zone_state[10] / 10
+
+    def get_dif_current_temp(self):
+        return self.get_signal_temperature_value() - self.get_local_temperature() 
