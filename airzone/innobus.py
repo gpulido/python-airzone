@@ -52,6 +52,8 @@ class Machine():
         self._zones = [Zone(self, i + 1) for i in config_zones]
 
     def get_operation_mode(self):
+        if self._machine_state == None:
+            return MachineOperationMode.STOP
         return MachineOperationMode(self._machine_state[0])
     
     def set_operation_mode(self, machineOperationMode):
@@ -64,6 +66,8 @@ class Machine():
         return state_value(self._machine_state, 3, 0, 0)
 
     def central_relay_state_1(self):
+        if self._machine_state == None:
+            return bitfield(0)
         return bitfield(self._machine_state[13])
 
     # @property
@@ -84,16 +88,11 @@ class Zone():
         self.base_zone = zoneId * 256
         self.retrieve_zone_status()
 
-    def read_registers(self, numRegisters):
-        return self._machine._gateway.read_input_registers(
-            self._machine._machineId, self.base_zone, 13)
-
     def write_register(self, address, value):
         return self._machine.write_register(self.base_zone + address, value)
     
     def write_bit_value(self, address, bit, value):
         new_value = change_bit_value(self._zone_state, address, bit, value)
-        #self._zone_state[address] = new_value
         self.write_register(address, new_value)
 
     def __str__(self):
@@ -103,8 +102,7 @@ class Zone():
                 " Hold On: " + str(self.is_zone_hold())
 
     def retrieve_zone_status(self):
-        self._zone_state = self._machine._gateway.read_input_registers(
-            self._machine._machineId, self.base_zone, 13)
+        self._zone_state = self._machine.read_registers(self.base_zone, 13)
 
     # OPERATION ZONE MODE
     def is_sleep_on(self):
@@ -176,6 +174,8 @@ class Zone():
     ####
 
     def get_min_signal_value(self):
+        if self._zone_state == None:
+            return -1
         return self._zone_state[1] / 10
 
     def set_min_signal_value(self, value):
@@ -183,6 +183,8 @@ class Zone():
             self.write_register(1, value * 10)
 
     def get_max_signal_value(self):
+        if self._zone_state == None:
+            return -1
         return self._zone_state[2] / 10
 
     def set_max_signal_value(self, value):
@@ -190,6 +192,8 @@ class Zone():
             self.write_register(2, value * 10)
 
     def get_signal_temperature_value(self):
+        if self._zone_state == None:
+            return -1
         return self._zone_state[3] / 10
 
     def set_signal_temperature_value(self, value):

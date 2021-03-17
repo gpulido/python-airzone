@@ -71,6 +71,8 @@ def state_value(state, address, init = 0, end = 15):
     '''
     init and end are included on the desired slice
     '''
+    if state == None:
+        return 0
     binary = format(state[address], '016b')
     r_init = len(binary)-1-init
     r_end = len(binary)-1-end 
@@ -78,6 +80,8 @@ def state_value(state, address, init = 0, end = 15):
     return int(kBitSubStr, 2)
 
 def bit_value(state, address, bit):
+    if state == None:
+        return 0
     #return state_value(state, address, bit, bit)
     temp = format(state[address], '016b')
     return int(temp[len(temp)-1-bit])

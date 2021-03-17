@@ -71,22 +71,32 @@ class Gateway():
 
     # innobus doc type 3
     def read_holding_registers(self, machineid, address, num_registers):
-        with self._lock:
-            response = self.client.read_holding_registers(
-                address, num_registers, unit=machineid)
-            logging.debug('read holding registers machineId:' + str(machineid) +
-                          ' address: ' + str(address) + ' num_registers: ' + str(num_registers))
-            logging.debug('response: ' + str(response.registers))
-            return response.registers
+        logging.debug(f'read holding registers machineId: {str(machineid)} address: {str(address)} num_registers: {str(num_registers)}')
+        
+        try:
+            with self._lock:
+                response = self.client.read_holding_registers(
+                    address, num_registers, unit=machineid)
+                
+                logging.debug('response: ' + str(response.registers))
+                return response.registers
+        except:
+            logging.exception('Error reading holding registers')
+        return None
 
     def read_input_registers(self, machineid, address, num_registers):  # innobus doc type 4
-        with self._lock:
-            response = self.client.read_input_registers(
-                address, num_registers, unit=machineid)
-            logging.debug('read input registers machineId:' + str(machineid) +
+        logging.debug('reading input registers: machineId:' + str(machineid) +
                           ' address: ' + str(address) + ' num_registers: ' + str(num_registers))
-            logging.debug('response: ' + str(response.registers))
-            return response.registers
+        try:
+            with self._lock:
+                response = self.client.read_input_registers(
+                    address, num_registers, unit=machineid)
+                logging.debug('response: ' + str(response.registers))
+                return response.registers
+        except:
+            logging.exception('Error reading input registers')
+        return None
+        
 
     def write_single_register(self, machineid, address, value):
         with self._lock:
