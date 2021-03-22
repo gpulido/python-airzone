@@ -1,10 +1,19 @@
 #!/usr/bin/python
+from airzone.protocol import Gateway
+def airzone_factory(serial, port, machineId, system='innobus'):
+    gat = Gateway(serial, port)
+    if system == 'innobus':
+        from airzone.innobus import Machine
+        m = Machine(gat, machineId)
+    else:
+        from airzone.aido import Aido
+        m = Aido(gat, machineId)
+    return m
+
 
 
 if __name__ == '__main__':
-    from airzone.protocol import Gateway
-    gateway = Gateway('modbus.local', 5020)
-    from airzone.innobus import Machine
+    m = airzone_factory('modbus.local', 5020, 1)
     a = Machine(gateway, 1)
     z = a.get_zones()[0]
     print(a._machine_state)

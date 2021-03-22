@@ -131,6 +131,11 @@ class Machine():
         if self._machine_state == None:
             return bitfield(0)
         return bitfield(self._machine_state[13])
+    
+    def __str__(self):
+        zs =  "\n".join([str(z) for z in  m.get_zones()])
+        return "Machine with id: " + str(self.machineId) + \
+               "Zones: \n" + zs
 
     # @property
     # def machine_operation_mode(self):
