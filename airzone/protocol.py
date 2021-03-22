@@ -1,5 +1,6 @@
 from airzone.utils import *
 from array import array
+from threading import Lock
 import serial
 import logging
 
@@ -82,14 +83,16 @@ class Gateway():
         """
         self.url = url
         self.port = port
+        self._lock = Lock()
         self.config_client()
 
     def config_client(self):
         """
         Configure the serial port
         """
-        self.client = ModbusClient(self.url, port=self.port)
-        self.client.connect()
+        with self._lock:
+            self.client = ModbusClient(self.url, port=self.port)
+            self.client.connect()
 
     # innobus doc type 3
     def read_holding_registers(self, machineid, address, num_registers):
