@@ -3,22 +3,83 @@ from airzone.protocol import *
 import datetime
 import time
 
+class MachineOperationMode(Enum):
+    STOP = 0
+    COLD = 1
+    HOT = 2
+    AIR = 3
+    HOT_AIR = 4
+    HOTPLUS = 258
+
+class ZoneMode(Enum):
+    MANUAL = 0
+    MANUAL_SLEEP = 1
+    AUTOMATIC = 2
+    AUTOMATIC_SLEEP = 3
+
+class FancoilSpeed(Enum):
+    AUTOMATIC = 0
+    SPEED_1 = 1
+    SPEED_2 = 2
+    SPEED_3 = 3
+
+class ProtectionTime(Enum):
+    TEN_SEC = 0
+    FOUR_MIN = 1
+
+
+class VentilationMode(Enum):
+    CONTINOUS = 0
+    AUTOMATIC = 1
+
+
+class LastGridCloseMode(Enum):
+    TIMER = 0
+    NO_TIMER = 1
+
+
+class GridMode(Enum):
+    All_NONE = 0
+    PROPORTIONAL = 1
+
+
+class GridAngle(Enum):
+    NINETY = 0
+    FIFTY = 1
+    FOURTY_FIVE = 2
+    FOURTY = 3
+
+
+class ProbeType(Enum):
+    NO_PROBE = 0
+    REMOTE = 1
+    FLOOR = 2
+
+
+class RelayConfig(Enum):
+    OFF = 0
+    USUALLY_OPEN = 1
+    USUALLY_CLOSE = 2
+
+
+class LocalFancoilType(Enum):
+    GRID = 0
+    FANCOIL = 1
 
 class Machine():
 
-    def __init__(self, gateway, machineId, discover_zones=True):
+    def __init__(self, gateway, machineId):
         self._gateway = gateway
         self._machineId = machineId
         self._machine_state = None
         self.sync_clock()
         self._zones = []
-        if discover_zones:
-            self.discover_zones()
+        self.discover_zones()
         self.retrieve_machine_status()
 
     def get_zones(self):
-        return self._zones
-
+        return list(filter(lambda z: z.zoneId != 0, self._zones))
+        
     def read_registers(self, address, numRegisters):
         return self._gateway.read_input_registers(
             self._machineId, address, numRegisters)
