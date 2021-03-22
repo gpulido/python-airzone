@@ -101,6 +101,15 @@ class Aido():
     
     #TODO Errors and warnings
 
+    def __str__(self):
+        return "Aido with id: " + str(self._machineId) + \
+               "On:" +  str(self.get_is_machine_on) + \
+               "Operation Mode: " + str(self.get_operation_mode()) + \
+               "Signal Temp: " + str(self.get_signal_temperature_value()) + \
+               "Local Temp: " + str(self.get_local_temperature()) + \
+               "Speed: " + str(self.get_speed()) + \
+               "Louvres: " + str(self.get.Louvres())
+
 
 
     
