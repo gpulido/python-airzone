@@ -12,7 +12,6 @@ except PackageNotFoundError:
 
 
 def action(args):
-    print(args.machine)
     m = airzone.airzone_factory(args.serial, args.port, args.machine, args.system)
     print(str(m))
     

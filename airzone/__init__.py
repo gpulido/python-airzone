@@ -1,5 +1,6 @@
 #!/usr/bin/python
 from airzone.protocol import Gateway
+
 def airzone_factory(serial, port, machineId, system='innobus'):
     gat = Gateway(serial, port)
     if system == 'innobus':
