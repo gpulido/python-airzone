@@ -2,7 +2,7 @@
 import airzone
 import sys
 import argparse
-from importlib.metadata import version, PackageNotFoundError
+from importlib_metadata import version, PackageNotFoundError
 
 try:
     __version__ = version("package-name")
