@@ -5,7 +5,7 @@ import argparse
 from importlib_metadata import version, PackageNotFoundError
 
 try:
-    __version__ = version("package-name")
+    __version__ = version("python-airzone")
 except PackageNotFoundError:
     # package is not installed
     pass
@@ -17,7 +17,7 @@ def action(args):
     print(str(m))
     
     
-parser = argparse.ArgumentParser(prog='airzone-cli')
+parser = argparse.ArgumentParser(prog='airzone')
 parser.add_argument('-v', '--version', action='version', version='%(prog)s ' + __version__)
 parser.add_argument("serial", type=str, help="serial device")
 parser.add_argument("port", type=str, help="serial tcp port")
