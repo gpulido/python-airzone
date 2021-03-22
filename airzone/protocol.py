@@ -1,71 +1,9 @@
 from airzone.utils import *
-import logging
-from enum import Enum
 from array import array
+import serial
+import logging
 
-class MachineOperationMode(Enum):
-    STOP = 0
-    COLD = 1
-    HOT = 2
-    AIR = 3
-    HOT_AIR = 4
-    HOTPLUS = 258
-
-class ZoneMode(Enum):
-    MANUAL = 0
-    MANUAL_SLEEP = 1
-    AUTOMATIC = 2
-    AUTOMATIC_SLEEP = 3
-
-class FancoilSpeed(Enum):
-    AUTOMATIC = 0
-    SPEED_1 = 1
-    SPEED_2 = 2
-    SPEED_3 = 3
-
-
-class ProtectionTime(Enum):
-    TEN_SEC = 0
-    FOUR_MIN = 1
-
-
-class VentilationMode(Enum):
-    CONTINOUS = 0
-    AUTOMATIC = 1
-
-
-class LastGridCloseMode(Enum):
-    TIMER = 0
-    NO_TIMER = 1
-
-
-class GridMode(Enum):
-    All_NONE = 0
-    PROPORTIONAL = 1
-
-
-class GridAngle(Enum):
-    NINETY = 0
-    FIFTY = 1
-    FOURTY_FIVE = 2
-    FOURTY = 3
-
-
-class ProbeType(Enum):
-    NO_PROBE = 0
-    REMOTE = 1
-    FLOOR = 2
-
-
-class RelayConfig(Enum):
-    OFF = 0
-    USUALLY_OPEN = 1
-    USUALLY_CLOSE = 2
-
-
-class LocalFancoilType(Enum):
-    GRID = 0
-    FANCOIL = 1
+from pymodbus.client.sync import ModbusTcpClient as ModbusClient
 
 def state_value(state, address, init = 0, end = 15):
     '''
@@ -115,4 +53,74 @@ def date_as_number(date):
     m = bitfield(date.minute)
     m = pad_left_list(m, 6, 0)
     value = shifting(m + h + l)
-    return value 
+    return value
+
+
+
+# --------------------------------------------------------------------------- #
+# configure the client logging
+# --------------------------------------------------------------------------- #
+# FORMAT = ('%(asctime)-15s %(threadName)-15s '
+#           '%(levelname)-8s %(module)-15s:%(lineno)-8s %(message)s')
+# logging.basicConfig(format=FORMAT)
+# log = logging.getLogger()
+# log.setLevel(logging.DEBUG)
+
+UNIT = 0x1
+
+class Gateway():
+
+    def __init__(self, url, port):
+        """                
+        Arguments:
+            url {String} -- Address where the master is listening
+            port {String} -- Serial port string as it is used in pyserial
+
+        Keyword Arguments:
+            discover {bool} -- True if the gateway should try to discover 
+                               the devices on init (default: {True})
+        """
+        self.url = url
+        self.port = port
+        self.config_client()
+
+    def config_client(self):
+        """
+        Configure the serial port
+        """
+        self.client = ModbusClient(self.url, port=self.port)
+        self.client.connect()
+
+    # innobus doc type 3
+    def read_holding_registers(self, machineid, address, num_registers):
+        logging.debug(f'read holding registers machineId: {str(machineid)} address: {str(address)} num_registers: {str(num_registers)}')
+        
+        try:
+            with self._lock:
+                response = self.client.read_holding_registers(
+                    address, num_registers, unit=machineid)
+                
+                logging.debug('response: ' + str(response.registers))
+                return response.registers
+        except:
+            logging.exception('Error reading holding registers')
+        return None
+
+    def read_input_registers(self, machineid, address, num_registers):  # innobus doc type 4
+        logging.debug('reading input registers: machineId:' + str(machineid) +
+                          ' address: ' + str(address) + ' num_registers: ' + str(num_registers))
+        try:
+            with self._lock:
+                response = self.client.read_input_registers(
+                    address, num_registers, unit=machineid)
+                logging.debug('response: ' + str(response.registers))
+                return response.registers
+        except:
+            logging.exception('Error reading input registers')
+        return None
+        
+
+    def write_single_register(self, machineid, address, value):
+        with self._lock:
+            test = self.client.write_register(address, value, unit=machineid)
+            print(test)
