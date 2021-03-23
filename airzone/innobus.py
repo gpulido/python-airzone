@@ -133,7 +133,7 @@ class Machine():
         return bitfield(self._machine_state[13])
     
     def __str__(self):
-        zs =  "\n".join([str(z) for z in  m.get_zones()])
+        zs =  "\n".join([str(z) for z in  self.get_zones()])
         return "Machine with id: " + str(self.machineId) + \
                "Zones: \n" + zs
 
