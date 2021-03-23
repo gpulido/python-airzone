@@ -134,7 +134,7 @@ class Machine():
     
     def __str__(self):
         zs =  "\n".join([str(z) for z in  self.get_zones()])
-        return "Machine with id: " + str(self.machineId) + \
+        return "Machine with id: " + str(self._machineId) + \
                "Zones: \n" + zs
 
     # @property
