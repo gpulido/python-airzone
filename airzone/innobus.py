@@ -368,4 +368,4 @@ class Zone():
         return self.get_signal_temperature_value() - self.get_local_temperature()
     
     def unique_id(self):
-        return f'{str(self._machineId)}_Z{self.zoneId}'
+        return f'{str(self._machine)}_Z{self.zoneId}'
