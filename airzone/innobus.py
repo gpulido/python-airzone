@@ -136,6 +136,9 @@ class Machine():
         zs =  "\n".join([str(z) for z in  self.get_zones()])
         return "Machine with id: " + str(self._machineId) + \
                "Zones: \n" + zs
+    
+    def unique_id(self):
+        return f'Innobus_M{self._machineId}_{str(self._gateway)}'
 
     # @property
     # def machine_operation_mode(self):
@@ -167,6 +170,7 @@ class Zone():
                 " ZoneMode: " + str(self.get_zone_mode()) + \
                 " Tacto On: " + str(self.is_tacto_on()) + \
                 " Hold On: " + str(self.is_zone_hold())
+    
 
     def retrieve_zone_status(self):
         self._zone_state = self._machine.read_registers(self.base_zone, 13)
@@ -361,4 +365,7 @@ class Zone():
         return self._zone_state[10] / 10
 
     def get_dif_current_temp(self):
-        return self.get_signal_temperature_value() - self.get_local_temperature() 
+        return self.get_signal_temperature_value() - self.get_local_temperature()
+    
+    def unique_id(self):
+        return f'{str(self._machineId)}_Z{self.zoneId}'

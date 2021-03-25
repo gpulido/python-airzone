@@ -108,7 +108,10 @@ class Aido():
                "Signal Temp: " + str(self.get_signal_temperature_value()) + \
                "Local Temp: " + str(self.get_local_temperature()) + \
                "Speed: " + str(self.get_speed()) + \
-               "Louvres: " + str(self.get.Louvres())
+               "Louvres: " + str(self.get_louvres())
+    
+    def unique_id(self):
+        return f'Aido_M{self._machineId}_{str(self._gateway)}'
 
 
 

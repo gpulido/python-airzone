@@ -6,7 +6,8 @@ import logging
 
 from pymodbus.client.sync import ModbusTcpClient as ModbusClient
 
-def state_value(state, address, init = 0, end = 15):
+
+def state_value(state, address, init=0, end=15):
     '''
     init and end are included on the desired slice
     '''
@@ -14,16 +15,18 @@ def state_value(state, address, init = 0, end = 15):
         return 0
     binary = format(state[address], '016b')
     r_init = len(binary)-1-init
-    r_end = len(binary)-1-end 
-    kBitSubStr = binary[r_end : r_init+1]
+    r_end = len(binary)-1-end
+    kBitSubStr = binary[r_end: r_init+1]
     return int(kBitSubStr, 2)
+
 
 def bit_value(state, address, bit):
     if state == None:
         return 0
-    #return state_value(state, address, bit, bit)
+    # return state_value(state, address, bit, bit)
     temp = format(state[address], '016b')
     return int(temp[len(temp)-1-bit])
+
 
 def change_range_bit_value(state, address, init_bit, num_bit, value):
     if num_bit <= 0:
@@ -31,7 +34,7 @@ def change_range_bit_value(state, address, init_bit, num_bit, value):
     temp2 = list(format(state[address], '016b'))
     idx = len(temp2)-init_bit-num_bit
     idx2 = len(temp2)-init_bit
-    temp = list(format(value, '0'+str(num_bit)+ 'b'))
+    temp = list(format(value, '0'+str(num_bit) + 'b'))
     temp2[idx:idx2] = temp
     return int("".join(temp2), 2)
 
@@ -46,6 +49,7 @@ def change_bit_value(state, address, bit, value):
     temp[idx] = ch
     return int("".join(temp), 2)
 
+
 def date_as_number(date):
     l = bitfield(date.weekday() + 1)
     l = pad_left_list(l, 3, 0)
@@ -57,7 +61,6 @@ def date_as_number(date):
     return value
 
 
-
 # --------------------------------------------------------------------------- #
 # configure the client logging
 # --------------------------------------------------------------------------- #
@@ -66,8 +69,8 @@ def date_as_number(date):
 # logging.basicConfig(format=FORMAT)
 # log = logging.getLogger()
 # log.setLevel(logging.DEBUG)
-
 UNIT = 0x1
+
 
 class Gateway():
 
@@ -81,8 +84,8 @@ class Gateway():
             discover {bool} -- True if the gateway should try to discover 
                                the devices on init (default: {True})
         """
-        self.url = url
-        self.port = port
+        self._url = url
+        self._port = port
         self._lock = Lock()
         self.config_client()
 
@@ -91,18 +94,19 @@ class Gateway():
         Configure the serial port
         """
         with self._lock:
-            self.client = ModbusClient(self.url, port=self.port)
+            self.client = ModbusClient(self._url, port=self._port)
             self.client.connect()
 
     # innobus doc type 3
     def read_holding_registers(self, machineid, address, num_registers):
-        logging.debug(f'read holding registers machineId: {str(machineid)} address: {str(address)} num_registers: {str(num_registers)}')
-        
+        logging.debug(
+            f'read holding registers machineId: {str(machineid)} address: {str(address)} num_registers: {str(num_registers)}')
+
         try:
             with self._lock:
                 response = self.client.read_holding_registers(
                     address, num_registers, unit=machineid)
-                
+
                 logging.debug('response: ' + str(response.registers))
                 return response.registers
         except:
@@ -111,7 +115,7 @@ class Gateway():
 
     def read_input_registers(self, machineid, address, num_registers):  # innobus doc type 4
         logging.debug('reading input registers: machineId:' + str(machineid) +
-                          ' address: ' + str(address) + ' num_registers: ' + str(num_registers))
+                      ' address: ' + str(address) + ' num_registers: ' + str(num_registers))
         try:
             with self._lock:
                 response = self.client.read_input_registers(
@@ -121,9 +125,11 @@ class Gateway():
         except:
             logging.exception('Error reading input registers')
         return None
-        
 
     def write_single_register(self, machineid, address, value):
         with self._lock:
             test = self.client.write_register(address, value, unit=machineid)
             print(test)
+    
+    def __str__(self):
+        return f'Modbus_{self._url}:{self._port}'
