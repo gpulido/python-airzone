@@ -1,10 +1,8 @@
-from airzone.utils import *
-from array import array
-from threading import Lock
-import serial
 import logging
+from threading import Lock
 
-from pymodbus.client.sync import ModbusTcpClient as ModbusClient
+from airzone.utils import *
+from pymodbus.client.sync import ModbusTcpClient as ModbusClient  # type: ignore
 
 
 def state_value(state, address, init=0, end=15):

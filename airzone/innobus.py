@@ -1,8 +1,10 @@
-import logging
-from airzone.protocol import *
-from enum import Enum
 import datetime
+import logging
 import time
+from enum import Enum
+
+from airzone.protocol import *
+
 
 class MachineOperationMode(Enum):
     STOP = 0
@@ -30,7 +32,7 @@ class ProtectionTime(Enum):
 
 
 class VentilationMode(Enum):
-    CONTINOUS = 0
+    CONTINUOUS = 0
     AUTOMATIC = 1
 
 
@@ -47,8 +49,8 @@ class GridMode(Enum):
 class GridAngle(Enum):
     NINETY = 0
     FIFTY = 1
-    FOURTY_FIVE = 2
-    FOURTY = 3
+    FORTY_FIVE = 2
+    FORTY = 3
 
 
 class ProbeType(Enum):
@@ -139,6 +141,9 @@ class Machine():
     
     def unique_id(self):
         return f'Innobus_M{self._machineId}_{str(self._gateway)}'
+    
+    def get_machine_state(self):
+        return self._machine_state
 
     # @property
     # def machine_operation_mode(self):

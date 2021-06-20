@@ -1,14 +1,18 @@
-from enum import Enum
-import logging
+from enum import IntEnum
 
-class OperationMode(Enum):
+
+class OperationMode(IntEnum):
     AUTO = 1
     COOLING = 2
     HEATING = 3
     FAN = 4
     DRY = 5
 
-class Speed(Enum):
+    @classmethod
+    def _missing_(cls, value):
+        return OperationMode.AUTO
+
+class Speed(IntEnum):
     AUTO = 0
     SPEED_1 = 1
     SPEED_2 = 2
@@ -18,7 +22,11 @@ class Speed(Enum):
     SPEED_6 = 6
     SPEED_7 = 7
 
-class Louvres(Enum):
+    @classmethod
+    def _missing_(cls, value):
+        return Speed.AUTO
+
+class Louvres(IntEnum):
     POS_0 = 0
     POS_1 = 1
     POS_2 = 2
@@ -30,6 +38,10 @@ class Louvres(Enum):
     AUTO = 8
     SWING = 9
     SWIRL = 10
+
+    @classmethod
+    def _missing_(cls, value):
+        return Louvres.AUTO
 
 
 class Aido():
@@ -102,22 +114,19 @@ class Aido():
     #TODO Errors and warnings
 
     def __str__(self):
+        
         return "Aido with id: " + str(self._machineId) + \
-               "On:" +  str(self.get_is_machine_on) + \
-               "Operation Mode: " + str(self.get_operation_mode()) + \
-               "Signal Temp: " + str(self.get_signal_temperature_value()) + \
-               "Local Temp: " + str(self.get_local_temperature()) + \
-               "Speed: " + str(self.get_speed()) + \
-               "Louvres: " + str(self.get_louvres())
+            "On:" +  str(self.get_is_machine_on) + \
+            "Operation Mode: " + str(self.get_operation_mode()) + \
+            "Signal Temp: " + str(self.get_signal_temperature_value()) + \
+            "Local Temp: " + str(self.get_local_temperature()) + \
+            "Speed: " + str(self.get_speed()) + \
+            "Louvres: " + str(self.get_louvres())
+        
     
     def unique_id(self):
         return f'Aido_M{self._machineId}_{str(self._gateway)}'
 
-
-
     
-
-
-    
-
-    
+    def get_machine_state(self):
+        return self._machine_state
