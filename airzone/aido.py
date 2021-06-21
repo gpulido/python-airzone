@@ -44,12 +44,16 @@ class Louvres(IntEnum):
         return Louvres.AUTO
 
 
+
 class Aido():
 
-    def __init__(self, gateway, machineId):
+    def __init__(self, gateway, machineId, has_dry = True, has_louvres = True, speed_as_per = False):
         self._gateway = gateway
         self._machineId = machineId
         self._machine_state = None
+        self._has_dry = has_dry
+        self._has_louvres = has_louvres
+        self._speed_as_per = speed_as_per        
 
         self._retrieve_machine_state()
     
@@ -98,10 +102,17 @@ class Aido():
     def get_speed(self):
         if self._machine_state == None:
             return Speed.AUTO
-        return Speed(self._machine_state[4])
+        value = self._machine_state[4]
+        #TODO: review for different machines
+        if self._speed_as_per:
+            value = self._machine_state[4] * 4 / 100
+        return Speed(value)
       
     def set_speed(self, speed):
         self._write_register(4, Speed[speed].value)
+
+    def has_louvres(self):
+        return self._has_louvres
 
     def get_louvres(self):
         if self._machine_state == None:
@@ -110,6 +121,10 @@ class Aido():
 
     def set_louvres(self, louvre):
         self._write_register(5, Louvres[louvre].value)
+
+    
+    def has_dry_state(self):
+        return self._has_dry
     
     #TODO Errors and warnings
 

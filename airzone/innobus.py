@@ -1,6 +1,4 @@
 import datetime
-import logging
-import time
 from enum import Enum
 
 from airzone.protocol import *
