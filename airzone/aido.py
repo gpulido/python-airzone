@@ -114,6 +114,11 @@ class Aido():
             value = value*100 / 4
 
         self._write_register(4, value)
+    
+    def get_speed_steps(self):
+        if self._speed_as_per:
+            return 4
+        return 7
 
     def has_louvres(self):
         return self._has_louvres
@@ -125,7 +130,6 @@ class Aido():
 
     def set_louvres(self, louvre):
         self._write_register(5, Louvres[louvre].value)
-
     
     def has_dry_state(self):
         return self._has_dry
