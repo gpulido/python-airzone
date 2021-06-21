@@ -109,7 +109,11 @@ class Aido():
         return Speed(value)
       
     def set_speed(self, speed):
-        self._write_register(4, Speed[speed].value)
+        value = Speed[speed].value
+        if self._speed_as_per:
+            value = value*100 / 4
+
+        self._write_register(4, value)
 
     def has_louvres(self):
         return self._has_louvres
