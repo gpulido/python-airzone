@@ -47,11 +47,10 @@ class Louvres(IntEnum):
 
 class Aido():
 
-    def __init__(self, gateway, machineId, has_dry = True, has_louvres = True, speed_as_per = False):
+    def __init__(self, gateway, machineId, has_louvres = True, speed_as_per = False):
         self._gateway = gateway
         self._machineId = machineId
-        self._machine_state = None
-        self._has_dry = has_dry
+        self._machine_state = None        
         self._has_louvres = has_louvres
         self._speed_as_per = speed_as_per        
 
@@ -130,9 +129,6 @@ class Aido():
 
     def set_louvres(self, louvre):
         self._write_register(5, Louvres[louvre].value)
-    
-    def has_dry_state(self):
-        return self._has_dry
     
     #TODO Errors and warnings
 
