@@ -96,6 +96,8 @@ class Aido():
         return OperationMode(self._machine_state[3])
 
     def set_operation_mode(self, operationMode):
+        if not self.get_is_machine_on():
+            self.turn_on()
         self._write_register(3, OperationMode[operationMode].value)
     
     def get_speed(self):
@@ -104,13 +106,13 @@ class Aido():
         value = self._machine_state[4]
         #TODO: review for different machines
         if self._speed_as_per:
-            value = self._machine_state[4] * 4 / 100
+            value = value * 4 // 100
         return Speed(value)
       
     def set_speed(self, speed):
         value = Speed[speed].value
         if self._speed_as_per:
-            value = value*100 / 4
+            value = value*100 // 4
 
         self._write_register(4, value)
     
