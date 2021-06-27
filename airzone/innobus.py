@@ -12,17 +12,20 @@ class MachineOperationMode(Enum):
     HOT_AIR = 4
     HOTPLUS = 258
 
+
 class ZoneMode(Enum):
     MANUAL = 0
     MANUAL_SLEEP = 1
     AUTOMATIC = 2
     AUTOMATIC_SLEEP = 3
 
+
 class FancoilSpeed(Enum):
     AUTOMATIC = 0
     SPEED_1 = 1
     SPEED_2 = 2
     SPEED_3 = 3
+
 
 class ProtectionTime(Enum):
     TEN_SEC = 0
@@ -67,6 +70,7 @@ class LocalFancoilType(Enum):
     GRID = 0
     FANCOIL = 1
 
+
 class Machine():
 
     def __init__(self, gateway, machineId):
@@ -80,7 +84,7 @@ class Machine():
 
     def get_zones(self):
         return list(filter(lambda z: z.zoneId != 0, self._zones))
-        
+
     def read_registers(self, address, numRegisters):
         return self._gateway.read_input_registers(
             self._machineId, address, numRegisters)
@@ -89,7 +93,7 @@ class Machine():
         return self._gateway.write_single_register(
             self._machineId, address, value)
 
-    def retrieve_machine_status(self, retrieve_zones = True):
+    def retrieve_machine_status(self, retrieve_zones=True):
         self._machine_state = self.read_registers(0, 21)
         if retrieve_zones:
             for zone in self._zones:
@@ -117,7 +121,7 @@ class Machine():
         if self._machine_state == None:
             return MachineOperationMode.STOP
         return MachineOperationMode(self._machine_state[0])
-    
+
     def set_operation_mode(self, machineOperationMode):
         self.write_register(0, MachineOperationMode[machineOperationMode].value)
 
@@ -131,15 +135,15 @@ class Machine():
         if self._machine_state == None:
             return bitfield(0)
         return bitfield(self._machine_state[13])
-    
+
     def __str__(self):
-        zs =  "\n".join([str(z) for z in  self.get_zones()])
+        zs = "\n".join([str(z) for z in self.get_zones()])
         return "Machine with id: " + str(self._machineId) + \
                "Zones: \n" + zs
-    
+
     def unique_id(self):
         return f'Innobus_M{self._machineId}_{str(self._gateway)}'
-    
+
     def get_machine_state(self):
         return self._machine_state
 
@@ -163,17 +167,16 @@ class Zone():
 
     def write_register(self, address, value):
         return self._machine.write_register(self.base_zone + address, value)
-    
+
     def write_bit_value(self, address, bit, value):
         new_value = change_bit_value(self._zone_state, address, bit, value)
         self.write_register(address, new_value)
 
     def __str__(self):
         return "Zone with id: " + str(self.zoneId) + \
-                " ZoneMode: " + str(self.get_zone_mode()) + \
-                " Tacto On: " + str(self.is_tacto_on()) + \
-                " Hold On: " + str(self.is_zone_hold())
-    
+               " ZoneMode: " + str(self.get_zone_mode()) + \
+               " Tacto On: " + str(self.is_tacto_on()) + \
+               " Hold On: " + str(self.is_zone_hold())
 
     def retrieve_zone_status(self):
         self._zone_state = self._machine.read_registers(self.base_zone, 13)
@@ -187,7 +190,7 @@ class Zone():
 
     def turnoff_sleep(self):
         self.write_bit_value(0, 0, 0)
-    
+
     def is_automatic_mode(self):
         return bit_value(self._zone_state, 0, 1)
 
@@ -230,7 +233,7 @@ class Zone():
 
     def is_zone_hold(self):
         return bit_value(self._zone_state, 0, 3)
-    
+
     def turnon_hold(self):
         self.write_bit_value(0, 3, 1)
 
@@ -240,7 +243,7 @@ class Zone():
     def get_speed_selection(self):
         temp = state_value(self._zone_state, 0, 4, 5)
         return FancoilSpeed(temp)
-    
+
     def set_speed_selection(self, fancoilSpeed):
         temp = change_range_bit_value(self._zone_state, 0, 4, 5, FancoilSpeed[fancoilSpeed].value)
         self.write_register(0, temp)
@@ -362,6 +365,7 @@ class Zone():
 
     def is_tacto_connected_cz(self):
         return bit_value(self._zone_state, 9, 14)
+
     ###
 
     def get_local_temperature(self):
@@ -369,6 +373,6 @@ class Zone():
 
     def get_dif_current_temp(self):
         return self.get_signal_temperature_value() - self.get_local_temperature()
-    
+
     def unique_id(self):
         return f'{str(self._machine)}_Z{self.zoneId}'
