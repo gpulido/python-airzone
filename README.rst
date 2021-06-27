@@ -1,4 +1,4 @@
-Python control of Innobus installation through Modbus serial Gateway
+Python control of Innobus installation through Modbus serial Gateway & local API
 ====================================================================
 
 |PyPI version|
