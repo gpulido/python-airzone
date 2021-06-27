@@ -7,8 +7,8 @@ Description: calling the local api of an airzone ethernet webserver.
 
 import requests
 
-import airzone
-from airzone.protocol import *
+# import airzone
+# from airzone.protocol import *
 
 
 class Machine:
