@@ -33,6 +33,27 @@ class Machine:
             self._data['SystemID'] = system_id
         self.retrieve_system_data()
 
+    def put_system_data(self, zone_id, parameter, value):
+        try:
+            self._data['zoneID'] = zone_id
+            self._data[parameter] = value
+            self._response = requests.put(url=self._API_ENDPOINT,
+                                          json=self._data)
+            if self._response.status_code == 200:
+                self._response_json = self._response.json()
+            elif self._response.status_code >= 500:
+                print('[!] [{0}] Server Error'.format(self._response.status_code))
+                return None
+            self._response.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            raise SystemExit(e)
+        except requests.exceptions.Timeout as e:
+            raise SystemExit(e)
+        except requests.exceptions.ConnectionError as e:
+            print("Error Connecting:", e)
+        except requests.exceptions.RequestException as e:  # This is the correct syntax
+            raise SystemExit(e)
+
     def retrieve_system_data(self):
         try:
             self._response = requests.post(url=self._API_ENDPOINT,
@@ -127,3 +148,4 @@ for i in range(1, m.zone_count):
     print(i, m.get_name(i), m.get_operation_mode(i), m.get_max_temp(i),
           m.get_min_temp(i), m.get_room_temp(i), m.get_room_humidity(i),
           m.get_air_demand(i), m.get_zone_mode(i), '\n')
+m.put_system_data(1, 'setpoint', 23)
