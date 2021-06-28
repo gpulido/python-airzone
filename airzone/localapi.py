@@ -63,6 +63,9 @@ class Machine:
         else:
             self.set_zone_parameter_value(zone_id, 'on', 1)
 
+    def set_zone_setpoint(self, zone_id, setpoint):
+        self.set_zone_parameter_value(zone_id, 'setpoint', setpoint)
+
     def get_system_data(self):
         try:
             self._response = requests.post(url=self._API_ENDPOINT,
@@ -91,57 +94,57 @@ class Machine:
         self._zonecount = len(m._response_json['data'])
         return self._zonecount + 1
 
-    def get_name(self, zonenumber):
+    def get_name(self, zone_id):
         for listmember in m._response_json['data']:
-            if zonenumber == listmember['zoneID']:
+            if zone_id == listmember['zoneID']:
                 self._zone_name = listmember['name']
                 return self._zone_name
 
-    def get_operation_mode(self, zonenumber):
+    def get_operation_mode(self, zone_id):
         for listmember in m._response_json['data']:
-            if zonenumber == listmember['zoneID']:
+            if zone_id == listmember['zoneID']:
                 self._zone_status = listmember['on']
                 return self._zone_status
 
-    def get_max_temp(self, zonenumber):
+    def get_max_temp(self, zone_id):
         for listmember in m._response_json['data']:
-            if zonenumber == listmember['zoneID']:
+            if zone_id == listmember['zoneID']:
                 self._zone_maxtemp = listmember['maxTemp']
                 return self._zone_maxtemp
 
-    def get_min_temp(self, zonenumber):
+    def get_min_temp(self, zone_id):
         for listmember in m._response_json['data']:
-            if zonenumber == listmember['zoneID']:
+            if zone_id == listmember['zoneID']:
                 self._zone_mintemp = listmember['minTemp']
                 return self._zone_mintemp
 
-    def get_set_point(self, zonenumber):
+    def get_set_point(self, zone_id):
         for listmember in m._response_json['data']:
-            if zonenumber == listmember['zoneID']:
+            if zone_id == listmember['zoneID']:
                 self._zone_mintemp = listmember['setpoint']
                 return self._zone_setpoint
 
-    def get_room_temp(self, zonenumber):
+    def get_room_temp(self, zone_id):
         for listmember in m._response_json['data']:
-            if zonenumber == listmember['zoneID']:
+            if zone_id == listmember['zoneID']:
                 self._zone_roomtemp = listmember['roomTemp']
                 return round(self._zone_roomtemp, 1)
 
-    def get_room_humidity(self, zonenumber):
+    def get_room_humidity(self, zone_id):
         for listmember in m._response_json['data']:
-            if zonenumber == listmember['zoneID']:
+            if zone_id == listmember['zoneID']:
                 self._zone_roomhumidity = listmember['humidity']
                 return self._zone_roomhumidity
 
-    def get_air_demand(self, zonenumber):
+    def get_air_demand(self, zone_id):
         for listmember in m._response_json['data']:
-            if zonenumber == listmember['zoneID']:
+            if zone_id == listmember['zoneID']:
                 self._zone_air_demand = listmember['air_demand']
                 return self._zone_air_demand
 
-    def get_zone_mode(self, zonenumber):
+    def get_zone_mode(self, zone_id):
         for listmember in m._response_json['data']:
-            if zonenumber == listmember['zoneID']:
+            if zone_id == listmember['zoneID']:
                 self._zone_mode = listmember['mode']
                 return self._zone_mode
 
