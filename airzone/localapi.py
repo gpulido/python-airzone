@@ -1,7 +1,9 @@
 """
-Author: Stefan
+Author: Stefan Senftleben
+email address: stefan.senftleben@posteo.de
 Version: 0.2
-Description: calling the local api of an airzone ethernet webserver.
+Description: Class for getting and setting information on airzone ethernet gateway, which serves on tcp 3000 with a
+             REST api.
 """
 
 import requests
