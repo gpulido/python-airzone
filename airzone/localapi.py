@@ -1,8 +1,7 @@
 """
 Author: Stefan
-Version: 0.1
+Version: 0.2
 Description: calling the local api of an airzone ethernet webserver.
-
 """
 
 import requests
@@ -31,9 +30,9 @@ class Machine:
         self._zone_mode = None
         if system_id != 1:
             self._data['SystemID'] = system_id
-        self.retrieve_system_data()
+        self.get_system_data()
 
-    def put_system_data(self, zone_id, parameter, value):
+    def set_zone_parameter_value(self, zone_id, parameter, value):
         try:
             self._data['zoneID'] = zone_id
             self._data[parameter] = value
@@ -54,7 +53,7 @@ class Machine:
         except requests.exceptions.RequestException as e:  # This is the correct syntax
             raise SystemExit(e)
 
-    def retrieve_system_data(self):
+    def get_system_data(self):
         try:
             self._response = requests.post(url=self._API_ENDPOINT,
                                            json=self._data)
@@ -148,4 +147,4 @@ for i in range(1, m.zone_count):
     print(i, m.get_name(i), m.get_operation_mode(i), m.get_max_temp(i),
           m.get_min_temp(i), m.get_room_temp(i), m.get_room_humidity(i),
           m.get_air_demand(i), m.get_zone_mode(i), '\n')
-m.put_system_data(1, 'setpoint', 23)
+m.set_zone_parameter_value(1, 'setpoint', 23)
