@@ -14,7 +14,7 @@ This implementation is for the Innobus system.
 
 Extension / Addon:
 localapi.py
-Local API use on ethernet airzone controller like AIRZONE AZX6WEBSCLOUDC with por TCP 3000.
+Local API use on ethernet airzone controller like AIRZONE AZX6WEBSCLOUDC with port TCP 3000.
 
 
 
