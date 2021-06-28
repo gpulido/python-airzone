@@ -36,10 +36,10 @@ class Machine:
 
     def set_zone_parameter_value(self, zone_id, parameter, value):
         try:
-            print(self._data)
+            # print(self._data)
             self._data['ZoneID'] = zone_id
             self._data[parameter] = value
-            print(self._data)
+            # print(self._data)
             self._response = requests.put(url=self._API_ENDPOINT,
                                           json=self._data)
             if self._response.status_code == 200:
@@ -65,6 +65,15 @@ class Machine:
 
     def set_zone_setpoint(self, zone_id, setpoint):
         self.set_zone_parameter_value(zone_id, 'setpoint', setpoint)
+
+    def set_zone_maxtemp(self, zone_id, maxtemp):
+        self.set_zone_parameter_value(zone_id, 'maxTemp', maxtemp)
+
+    def set_zone_mintemp(self, zone_id, mintemp):
+        self.set_zone_parameter_value(zone_id, 'minTemp', mintemp)
+
+    def set_zone_name(self, zone_id, name):
+        self.set_zone_parameter_value(zone_id, 'name', name)
 
     def get_system_data(self):
         try:
