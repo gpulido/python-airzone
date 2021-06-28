@@ -2,7 +2,7 @@
 Author: Stefan Senftleben
 email address: stefan.senftleben@posteo.de
 Version: 0.2
-Description: Class for getting and setting information on airzone ethernet gateway, which serves on tcp 3000 with a
+Description: Class for getting and setting information on an airzone ethernet gateway, which serves on tcp 3000 with a
              REST api.
 """
 
@@ -36,8 +36,10 @@ class Machine:
 
     def set_zone_parameter_value(self, zone_id, parameter, value):
         try:
-            self._data['zoneID'] = zone_id
+            print(self._data)
+            self._data['ZoneID'] = zone_id
             self._data[parameter] = value
+            print(self._data)
             self._response = requests.put(url=self._API_ENDPOINT,
                                           json=self._data)
             if self._response.status_code == 200:
@@ -54,6 +56,12 @@ class Machine:
             print("Error Connecting:", e)
         except requests.exceptions.RequestException as e:  # This is the correct syntax
             raise SystemExit(e)
+
+    def set_zone_operation_toggle(self, zone_id):
+        if self.get_operation_mode(zone_id) == 1:
+            self.set_zone_parameter_value(zone_id, 'on', 0)
+        else:
+            self.set_zone_parameter_value(zone_id, 'on', 1)
 
     def get_system_data(self):
         try:
@@ -149,4 +157,8 @@ for i in range(1, m.zone_count):
     print(i, m.get_name(i), m.get_operation_mode(i), m.get_max_temp(i),
           m.get_min_temp(i), m.get_room_temp(i), m.get_room_humidity(i),
           m.get_air_demand(i), m.get_zone_mode(i), '\n')
-m.set_zone_parameter_value(1, 'setpoint', 23)
+
+# m.set_zone_parameter_value(1, 'setpoint', 23)
+
+# Toggle the operation mode of a zone
+# m.set_zone_operation_toggle(1)
