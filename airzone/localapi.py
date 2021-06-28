@@ -7,9 +7,6 @@ Description: calling the local api of an airzone ethernet webserver.
 
 import requests
 
-# import airzone
-# from airzone.protocol import *
-
 
 class Machine:
 
@@ -32,13 +29,16 @@ class Machine:
         self._zone_roomhumidity = None
         self._zone_air_demand = None
         self._zone_mode = None
+        if system_id != 1:
+            self._data['SystemID'] = system_id
         self.retrieve_system_data()
 
     def retrieve_system_data(self):
         try:
             self._response = requests.post(url=self._API_ENDPOINT,
                                            json=self._data)
-            self._response_json = self._response.json()
+            if self._response.status_code == 200:
+                self._response_json = self._response.json()
             self._response.raise_for_status()
         except requests.exceptions.HTTPError as e:
             raise SystemExit(e)
@@ -112,6 +112,8 @@ class Machine:
                 self._zone_mode = listmember['mode']
                 return self._zone_mode
 
+
+# Lines for Tests. Adapt argument ip address and system id (1 == standard).
 
 m = Machine('192.168.90.9', 1)
 print("Printing Post JSON data")
