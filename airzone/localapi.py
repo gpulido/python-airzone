@@ -39,6 +39,9 @@ class Machine:
                                            json=self._data)
             if self._response.status_code == 200:
                 self._response_json = self._response.json()
+            elif self._response.status_code >= 500:
+                print('[!] [{0}] Server Error'.format(self._response.status_code))
+                return None
             self._response.raise_for_status()
         except requests.exceptions.HTTPError as e:
             raise SystemExit(e)
@@ -117,7 +120,7 @@ class Machine:
 
 m = Machine('192.168.90.9', 1)
 print("Printing Post JSON data")
-print(m.response_json)
+# print(m.response_json)
 print(m.response_json['data'])
 print(u"\nNumber of zones: ", m.zone_count)
 for i in range(1, m.zone_count):
