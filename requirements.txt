@@ -1,0 +1,4 @@
+pyModbus
+pybase64
+importlib-metadata
+requests

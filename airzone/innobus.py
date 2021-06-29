@@ -147,13 +147,6 @@ class Machine():
     def get_machine_state(self):
         return self._machine_state
 
-    # @property
-    # def machine_operation_mode(self):
-    #     return self._machine_operation_mode
-
-    # @machine_operation_mode.setter
-    # def machine_operation_mode(self, operation_mode):
-    #     self._gateway.write_single_register(self._machineId, "00H", operation_mode.value)
 
 
 class Zone():
