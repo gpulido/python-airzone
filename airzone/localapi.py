@@ -118,7 +118,7 @@ class Zone:
         self._machine.set_zone_parameter_value('name', name)
 
     def get_name(self):
-        return self.get_prowperty('name')
+        return self.get_property('name')
 
     def is_on(self):
         return self.get_property('on')
