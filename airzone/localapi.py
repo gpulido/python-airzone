@@ -47,10 +47,10 @@ class Machine:
             if 'modes' in listmember:
                 return listmember['modes']
 
-    def get_zone_property(self, zone_id, property):
+    def get_zone_property(self, zone_id, prop):
         for listmember in self._machine_state:
             if zone_id == listmember['zoneID']:
-                return listmember[property]
+                return listmember[prop]
 
     def set_zone_parameter_value(self, zone_id, parameter, value):
         try:
@@ -86,14 +86,14 @@ class Machine:
         return self.get_zone_property(0, 'mode')
 
     def unique_id(self):
-        return f'Local_Api{self._machineId}_{str(self._machine_ip)}'
+        return f'Local_Api{self._machine_id}_{str(self._machine_ip)}'
 
     def get_machine_state(self):
         return self._machine_state
 
     def __str__(self):
         zs = "\n".join([str(z) for z in self.get_zones()])
-        return "Machine with id: " + str(self._machineId) + \
+        return "Machine with id: " + str(self._machine_id) + \
                "Zones: \n" + zs
 
 
@@ -148,7 +148,7 @@ class Zone:
         return self.get_property('setpoint')
 
     def get_room_temp(self):
-        return self.get_property('roomtemp')
+        return self.get_property('roomTemp')
 
     def get_room_humidity(self):
         return self.get_property('humidity')
@@ -169,3 +169,5 @@ if __name__ == '__main__':
     print("Printing Post JSON data")
     print(m.get_machine_state())
     print("Number of zones: ", len(m.get_zones()))
+    print(m)
+
