@@ -5,9 +5,9 @@ class Machine:
 
     def __init__(self, machine_ipaddr, port=3000, system_id=1):
         self._API_ENDPOINT = f"http://{machine_ipaddr}:{str(port)}/api/v1/hvac"
-        self._data = {'SystemID': self._machine_id, 'ZoneID': 0}
         self._machine_id = system_id
         self._machine_ip = machine_ipaddr
+        self._data = {'SystemID': self._machine_id, 'ZoneID': 0}
         self._machine_state = None
         self._response = None
         self._response_json = None
@@ -77,7 +77,7 @@ class Machine:
         zs = "\n".join([str(z) for z in self.get_zones()])
         return "Machine with id: " + str(self._machine_id) + \
                "\nZones: \nModes: " + str(self._system_modes) + \
-                "\nSystem mode: " + str(self._system_modes[self.get_mode()]) + \
+               "\nSystem mode: " + str(self._system_modes[self.get_mode()]) + \
                "\nZones\n" + zs
 
 
