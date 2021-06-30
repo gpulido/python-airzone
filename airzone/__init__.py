@@ -2,14 +2,18 @@
 from airzone.protocol import Gateway
 
 
-def airzone_factory(serial, port, machineId, system="innobus", **kwargs):
-    gat = Gateway(serial, port)
-    if system == 'innobus':
-        from airzone.innobus import Machine
-        m = Machine(gat, machineId)
+def airzone_factory(address, port, machineId, system="innobus", **kwargs):
+    if system == 'localapi':
+        from airzone.localapi import Machine
+        m = Machine(address, port, machineId, **kwargs)
     else:
-        from airzone.aido import Aido
-        m = Aido(gat, machineId, **kwargs)
+        gat = Gateway(address, port)
+        if system == 'innobus':
+            from airzone.innobus import Machine
+            m = Machine(gat, machineId)
+        else:
+            from airzone.aido import Aido
+            m = Aido(gat, machineId, **kwargs)    
     return m
 
 

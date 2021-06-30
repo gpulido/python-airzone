@@ -1,5 +1,7 @@
 from enum import IntEnum
 
+from deprecated import deprecated  # type: ignore
+
 
 class OperationMode(IntEnum):
     AUTO = 1
@@ -149,5 +151,10 @@ class Aido():
         return f'Aido_M{self._machineId}_{str(self._gateway)}'
 
     
+    @property
+    def machine_state(self):
+        return self._machine_state
+
+    @deprecated('Use the machine_state property instead')    
     def get_machine_state(self):
         return self._machine_state

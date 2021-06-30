@@ -2,3 +2,4 @@ pyModbus
 pybase64
 importlib-metadata
 requests
+Python-Deprecated

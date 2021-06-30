@@ -2,6 +2,7 @@ import datetime
 from enum import Enum
 
 from airzone.protocol import *
+from deprecated import deprecated  # type: ignore
 
 
 class MachineOperationMode(Enum):
@@ -144,6 +145,11 @@ class Machine():
     def unique_id(self):
         return f'Innobus_M{self._machineId}_{str(self._gateway)}'
 
+    @property
+    def machine_state(self):
+        return self._machine_state
+
+    @deprecated('Use the machine_state property instead')
     def get_machine_state(self):
         return self._machine_state
 
