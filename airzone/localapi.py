@@ -11,9 +11,11 @@ class Machine:
         self._data = {'SystemID': self._machine_id, 'ZoneID': 0}
         self._machine_state = None
         self._zones = []
+        self._response = None
+        self._response_json = None
         self.get_system_data()
         self.discover_zones()
-        self._system_modes = self.get_system_modes()
+        self._system_modes = {1: "Stop", 2: "Cooling", 3: "Heating", 4: "Fan", 5: "Dry"}
 
     def discover_zones(self):
         self._zones = [Zone(self, listmember['zoneID']) for listmember in self._machine_state if
@@ -24,22 +26,17 @@ class Machine:
 
     def get_system_data(self):
         try:
-            response = requests.post(url=self._API_ENDPOINT,
-                                     json=self._data)
-            if response.status_code == 200:
-                response_json = response.json()
-                self._machine_state = response_json['data']
-            elif response.status_code >= 500:
-                print(f'[!] [{response.status_code}] Server Error')
+            self._response = requests.post(url=self._API_ENDPOINT,
+                                           json=self._data)
+            if self._response.status_code == 200:
+                self._response_json = self._response.json()
+                self._machine_state = self._response_json['data']
+            elif self._response.status_code >= 500:
+                print(f'[!] [{self._response.status_code}] Server Error')
                 return None
-            response.raise_for_status()
+            self._response.raise_for_status()
         except requests.exceptions.RequestException as e:
             raise SystemExit(e)
-
-    def get_system_modes(self):
-        for listmember in self._machine_state:
-            if 'modes' in listmember:
-                return listmember['modes']
 
     def get_zone_property(self, zone_id, prop):
         for listmember in self._machine_state:
@@ -50,25 +47,26 @@ class Machine:
         try:
             self._data['ZoneID'] = zone_id
             self._data[parameter] = value
-            response = requests.put(url=self._API_ENDPOINT,
-                                    json=self._data)
-            if response.status_code == 200:
-                response_json = response.json()
-                self._machine_state = response_json['data']
-            elif response.status_code >= 500:
-                print(f'[!] [{response.status_code}] Server Error')
+            self._response = requests.put(url=self._API_ENDPOINT,
+                                          json=self._data)
+            if self._response.status_code == 200:
+                self._response_json = self._response.json()
+                self._machine_state = self._response_json['data']
+            elif self._response.status_code >= 500:
+                print(f'[!] [{self._response.status_code}] Server Error')
                 return None
             self._response.raise_for_status()
         except requests.exceptions.RequestException as e:
             raise SystemExit(e)
 
-    def set_mode(self, mode):
-        self._set_zone_parameter_value(0, 'mode', mode)
+    def set_system_mode(self, mode):
+        self.set_zone_parameter_value(0, 'mode', mode)
+
+    def get_system_modes(self):
+        return self._system_modes
 
     def get_mode(self):
-        # Mode is global to the system TODO: check that the zone_id = 0 is available for this
-        # TODO: Transform in enum
-        return self.get_zone_property(0, 'mode')
+        return self.get_zone_property(1, 'mode')
 
     def unique_id(self):
         return f'Local_Api{self._machine_id}_{str(self._machine_ip)}'
@@ -79,7 +77,9 @@ class Machine:
     def __str__(self):
         zs = "\n".join([str(z) for z in self.get_zones()])
         return "Machine with id: " + str(self._machine_id) + \
-               "\nZones: \n" + zs
+               "\nZones: \nModes: " + str(self._system_modes) + \
+                "\nSystem mode: " + str(self._system_modes[self.get_mode()]) + \
+               "\nZones\n" + zs
 
 
 class Zone:
@@ -142,7 +142,7 @@ class Zone:
         return "Zone with id: " + str(self._zone_id) + \
                " Name: " + str(self.get_name()) + \
                " Zone is On: " + str(self.is_on()) + \
-               " Room Temp: " + str(self.get_room_temp()) + \
+               " Room Temp: " + str(round(self.get_room_temp(), 1)) + \
                " Room humidity: " + str(self.get_room_humidity()) + \
                " Max_Temp: " + str(self.get_max_temp()) + \
                " Min_Temp: " + str(self.get_min_temp())
