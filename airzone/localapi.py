@@ -8,10 +8,14 @@ class Machine:
         self._machine_id = system_id
         self._machine_ip = machine_ipaddr
         self._data = {'SystemID': self._machine_id, 'ZoneID': 0}
+        self._error_log = []
         self._machine_state = None
         self._response = None
         self._response_json = None
         self._system_modes = {1: "Stop", 2: "Cooling", 3: "Heating", 4: "Fan", 5: "Dry"}
+        # fan speed is not in use
+        self._fan_speeds = {0: "Auto", 1: "Low speed", 2: "Medium Speed", 3: "High Speed"}
+        self._units = {0: "Celsius", 1: "Fahrenheit"}
         self._zones = []
         self.get_system_data()
         self.discover_zones()
@@ -57,6 +61,9 @@ class Machine:
             self._response.raise_for_status()
         except requests.exceptions.RequestException as e:
             raise SystemExit(e)
+
+    def set_fan_speed(self, mode):
+        self.set_zone_parameter_value(0, 'speed', mode)
 
     def set_system_mode(self, mode):
         self.set_zone_parameter_value(0, 'mode', mode)
@@ -137,11 +144,22 @@ class Zone:
     def get_room_humidity(self):
         return self.get_property('humidity')
 
+    def get_air_demand(self):
+        return self.get_property('air_demand')
+
+    def get_floor_demand(self):
+        return self.get_property('floor_demand')
+
+    def get_units(self):
+        return self.get_property('units')
+
     def __str__(self):
         return "Zone with id: " + str(self._zone_id) + \
                " Name: " + str(self.get_name()) + \
                " Zone is On: " + str(self.is_on()) + \
+               " Air demand is: " + str(self.get_air_demand()) + \
                " Room Temp: " + str(round(self.get_room_temp(), 1)) + \
+               " " + str(self._machine._units[self.get_units()]) +\
                " Room humidity: " + str(self.get_room_humidity()) + \
                " Max_Temp: " + str(self.get_max_temp()) + \
                " Min_Temp: " + str(self.get_min_temp())
