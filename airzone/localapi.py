@@ -33,13 +33,7 @@ class Machine:
                 print(f'[!] [{response.status_code}] Server Error')
                 return None
             response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            raise SystemExit(e)
-        except requests.exceptions.Timeout as e:
-            raise SystemExit(e)
-        except requests.exceptions.ConnectionError as e:
-            print("Error Connecting:", e)
-        except requests.exceptions.RequestException as e:  # This is the correct syntax
+        except requests.exceptions.RequestException as e:
             raise SystemExit(e)
 
     def get_system_modes(self):
@@ -54,27 +48,18 @@ class Machine:
 
     def set_zone_parameter_value(self, zone_id, parameter, value):
         try:
-            # print(self._data)
             self._data['ZoneID'] = zone_id
             self._data[parameter] = value
-            # print(self._data)
             response = requests.put(url=self._API_ENDPOINT,
                                     json=self._data)
             if response.status_code == 200:
-                # TODO: this response is the same as if we ask for the 0 zone?
                 response_json = response.json()
                 self._machine_state = response_json['data']
             elif response.status_code >= 500:
                 print(f'[!] [{response.status_code}] Server Error')
                 return None
             self._response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            raise SystemExit(e)
-        except requests.exceptions.Timeout as e:
-            raise SystemExit(e)
-        except requests.exceptions.ConnectionError as e:
-            print("Error Connecting:", e)
-        except requests.exceptions.RequestException as e:  # This is the correct syntax
+        except requests.exceptions.RequestException as e:
             raise SystemExit(e)
 
     def set_mode(self, mode):
@@ -94,7 +79,7 @@ class Machine:
     def __str__(self):
         zs = "\n".join([str(z) for z in self.get_zones()])
         return "Machine with id: " + str(self._machine_id) + \
-               "Zones: \n" + zs
+               "\nZones: \n" + zs
 
 
 class Zone:
@@ -115,25 +100,25 @@ class Zone:
         self.set_parameter_value('on', 0)
 
     def toggle_mode(self):
-        if self.get_operation_mode() == 1:
+        if self._machine.get_operation_mode() == 1:
             self.set_parameter_value('on', 0)
         else:
             self.set_parameter_value('on', 1)
 
     def set_setpoint(self, setpoint):
-        self.set_zone_parameter_value('setpoint', setpoint)
+        self._machine.set_zone_parameter_value('setpoint', setpoint)
 
     def set_maxtemp(self, maxtemp):
-        self.set_zone_parameter_value('maxTemp', maxtemp)
+        self._machine.set_zone_parameter_value('maxTemp', maxtemp)
 
     def set_mintemp(self, mintemp):
-        self.set_zone_parameter_value('minTemp', mintemp)
+        self._machine.set_zone_parameter_value('minTemp', mintemp)
 
     def set_name(self, name):
-        self.set_zone_parameter_value('name', name)
+        self._machine.set_zone_parameter_value('name', name)
 
     def get_name(self):
-        return self.get_property('name')
+        return self.get_prowperty('name')
 
     def is_on(self):
         return self.get_property('on')
@@ -170,4 +155,3 @@ if __name__ == '__main__':
     print(m.get_machine_state())
     print("Number of zones: ", len(m.get_zones()))
     print(m)
-
