@@ -4,18 +4,17 @@ import requests  # type: ignore
 class Machine:
 
     def __init__(self, machine_ipaddr, port=3000, system_id=1):
-        self._machine_ip = machine_ipaddr
-        self._machine_id = system_id
-        self._machine_state = None
         self._API_ENDPOINT = f"http://{machine_ipaddr}:{str(port)}/api/v1/hvac"
         self._data = {'SystemID': self._machine_id, 'ZoneID': 0}
+        self._machine_id = system_id
+        self._machine_ip = machine_ipaddr
         self._machine_state = None
-        self._zones = []
         self._response = None
         self._response_json = None
+        self._system_modes = {1: "Stop", 2: "Cooling", 3: "Heating", 4: "Fan", 5: "Dry"}
+        self._zones = []
         self.get_system_data()
         self.discover_zones()
-        self._system_modes = {1: "Stop", 2: "Cooling", 3: "Heating", 4: "Fan", 5: "Dry"}
 
     def discover_zones(self):
         self._zones = [Zone(self, listmember['zoneID']) for listmember in self._machine_state if
