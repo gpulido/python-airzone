@@ -83,7 +83,7 @@ class Machine:
     def __str__(self):
         zs = "\n".join([str(z) for z in self.get_zones()])
         return "Machine with id: " + str(self._machine_id) + \
-               "\nZones: \nModes: " + str(self._system_modes) + \
+               "\nModes: " + str(self._system_modes) + \
                "\nSystem mode: " + str(self._system_modes[self.get_mode()]) + \
                "\nZones\n" + zs
 
