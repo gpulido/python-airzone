@@ -2,6 +2,7 @@
 """
 import requests  # type: ignore
 
+# TODO: Get Error status of zones
 
 class Machine:
 

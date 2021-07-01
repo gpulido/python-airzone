@@ -12,6 +12,7 @@ class OperationMode(IntEnum):
     def _missing_(cls, value):
         return OperationMode.AUTO
 
+
 class Speed(IntEnum):
     AUTO = 0
     SPEED_1 = 1
@@ -25,6 +26,7 @@ class Speed(IntEnum):
     @classmethod
     def _missing_(cls, value):
         return Speed.AUTO
+
 
 class Louvres(IntEnum):
     POS_0 = 0
@@ -44,54 +46,53 @@ class Louvres(IntEnum):
         return Louvres.AUTO
 
 
+class Aido:
 
-class Aido():
-
-    def __init__(self, gateway, machineId, has_louvres = True, speed_as_per = False):
+    def __init__(self, gateway, machineId, has_louvres=True, speed_as_per=False):
         self._gateway = gateway
         self._machineId = machineId
-        self._machine_state = None        
+        self._machine_state = None
         self._has_louvres = has_louvres
-        self._speed_as_per = speed_as_per        
+        self._speed_as_per = speed_as_per
 
         self._retrieve_machine_state()
-    
+
     def _read_registers(self, address, numRegisters):
         return self._gateway.read_input_registers(
-            self._machineId, address, numRegisters)
-    
+                self._machineId, address, numRegisters)
+
     def _write_register(self, address, value):
         return self._gateway.write_single_register(
-            self._machineId, address, value)
+                self._machineId, address, value)
 
     def _retrieve_machine_state(self):
         self._machine_state = self._read_registers(0, 7)
-    
+
     def get_is_machine_on(self):
-        if self._machine_state == None:
+        if self._machine_state is None:
             return 0
         return self._machine_state[0]
-    
+
     def turn_on(self):
         self._write_register(0, 1)
-    
+
     def turn_off(self):
         self._write_register(0, 0)
 
     def get_signal_temperature_value(self):
-        if self._machine_state == None:
+        if self._machine_state is None:
             return -1
         return self._machine_state[1] / 10
-    
+
     def set_signal_temperature_value(self, value):
         if value >= 18 or value <= 30:
             self._write_register(1, int(value * 10))
 
     def get_local_temperature(self):
         return self._machine_state[2] / 10
-    
+
     def get_operation_mode(self):
-        if self._machine_state == None:
+        if self._machine_state is None:
             return OperationMode.AUTO
         return OperationMode(self._machine_state[3])
 
@@ -99,23 +100,23 @@ class Aido():
         if not self.get_is_machine_on():
             self.turn_on()
         self._write_register(3, OperationMode[operationMode].value)
-    
+
     def get_speed(self):
-        if self._machine_state == None:
+        if self._machine_state is None:
             return Speed.AUTO
         value = self._machine_state[4]
-        #TODO: review for different machines
+        # TODO: review for different machines
         if self._speed_as_per:
             value = value * 4 // 100
         return Speed(value)
-      
+
     def set_speed(self, speed):
         value = Speed[speed].value
         if self._speed_as_per:
-            value = value*100 // 4
+            value = value * 100 // 4
 
         self._write_register(4, value)
-    
+
     def get_speed_steps(self):
         if self._speed_as_per:
             return 4
@@ -125,29 +126,27 @@ class Aido():
         return self._has_louvres
 
     def get_louvres(self):
-        if self._machine_state == None:
+        if self._machine_state is None:
             return Louvres.AUTO
         return Louvres(self._machine_state[5])
 
     def set_louvres(self, louvre):
         self._write_register(5, Louvres[louvre].value)
-    
-    #TODO Errors and warnings
+
+    # TODO: Errors and warnings
 
     def __str__(self):
-        
+
         return "Aido with id: " + str(self._machineId) + \
-            "On:" +  str(self.get_is_machine_on) + \
-            "Operation Mode: " + str(self.get_operation_mode()) + \
-            "Signal Temp: " + str(self.get_signal_temperature_value()) + \
-            "Local Temp: " + str(self.get_local_temperature()) + \
-            "Speed: " + str(self.get_speed()) + \
-            "Louvres: " + str(self.get_louvres())
-        
-    
+               "On:" + str(self.get_is_machine_on) + \
+               "Operation Mode: " + str(self.get_operation_mode()) + \
+               "Signal Temp: " + str(self.get_signal_temperature_value()) + \
+               "Local Temp: " + str(self.get_local_temperature()) + \
+               "Speed: " + str(self.get_speed()) + \
+               "Louvres: " + str(self.get_louvres())
+
     def unique_id(self):
         return f'Aido_M{self._machineId}_{str(self._gateway)}'
 
-    
     def get_machine_state(self):
         return self._machine_state
