@@ -1,3 +1,5 @@
+""" Airzone Local api integration
+"""
 import requests  # type: ignore
 
 
@@ -10,23 +12,36 @@ class Machine:
         self._data = {'SystemID': self._machine_id, 'ZoneID': 0}
         self._error_log = []
         self._machine_state = None
-        self._response = None
-        self._response_json = None
+        self._zones = {}
         self._system_modes = {1: "Stop", 2: "Cooling", 3: "Heating", 4: "Fan", 5: "Dry"}
         # fan speed is not in use
         self._fan_speeds = {0: "Auto", 1: "Low speed", 2: "Medium Speed", 3: "High Speed"}
-        self._units = {0: "Celsius", 1: "Fahrenheit"}
-        self._zones = []
+        self._units = {0: "Celsius", 1: "Fahrenheit"}        
         self.get_system_data()
         self.discover_zones()
+        
+    
+    @property
+    def machine_state(self):
+        return self._machine_state
 
-    def discover_zones(self):
-        self._zones = [Zone(self, listmember['zoneID']) for listmember in self._machine_state if
-                       listmember['zoneID'] != 0]
+    @machine_state.setter
+    def machine_state(self, value):
+        self._machine_state = value
+        self.update_zones()
+
+    def discover_zones(self):                
+        self._zones = {z['zoneID']: Zone(self, z['zoneID'], z) for z in self._machine_state if z['zoneID'] != 0}
+
+    def update_zones(self):
+        if self._zones == {}:
+            self.discover_zones()
+        for z in self._machine_state:
+            self._zones[z['zoneID']].set_zone_state(z)
 
     def get_zones(self):
-        return self._zones
-
+        return self._zones.values()
+    
     def get_system_data(self):
         try:
             self._response = requests.post(url=self._API_ENDPOINT,
@@ -50,13 +65,13 @@ class Machine:
         try:
             self._data['ZoneID'] = zone_id
             self._data[parameter] = value
-            self._response = requests.put(url=self._API_ENDPOINT,
-                                          json=self._data)
-            if self._response.status_code == 200:
-                self._response_json = self._response.json()
-                self._machine_state = self._response_json['data']
-            elif self._response.status_code >= 500:
-                print(f'[!] [{self._response.status_code}] Server Error')
+            response = requests.put(url=self._API_ENDPOINT,
+                                    json=self._data)
+            if response.status_code == 200:
+                response_json = response.json()
+                self.machine_state = response_json['data']
+            elif response.status_code >= 500:
+                print(f'[!] [{response.status_code}] Server Error')                
                 return None
             self._response.raise_for_status()
         except requests.exceptions.RequestException as e:
@@ -76,10 +91,7 @@ class Machine:
 
     def unique_id(self):
         return f'Local_Api{self._machine_id}_{str(self._machine_ip)}'
-
-    def get_machine_state(self):
-        return self._machine_state
-
+  
     def __str__(self):
         zs = "\n".join([str(z) for z in self.get_zones()])
         return "Machine with id: " + str(self._machine_id) + \
@@ -89,12 +101,17 @@ class Machine:
 
 
 class Zone:
-    def __init__(self, machine, zone_id):
+    def __init__(self, machine, zone_id, data = {}):
         self._machine = machine
-        self._zone_id = zone_id
+        self._zone_id = zone_id        
+        self.set_zone_state(data)        
+    
+    def set_zone_state(self, state):
+        self._zone_state = state
+
 
     def get_property(self, prop):
-        return self._machine.get_zone_property(self._zone_id, prop)
+        return self._zone_state[prop]        
 
     def set_parameter_value(self, prop, value):
         self._machine.set_zone_parameter_value(self._zone_id, prop, value)
@@ -169,6 +186,6 @@ if __name__ == '__main__':
     # Lines for Tests. Adapt argument ip address and system id (1 == standard).
     m = Machine('192.168.90.9', system_id=1)
     print("Printing Post JSON data")
-    print(m.get_machine_state())
+    print(m.machine_state)
     print("Number of zones: ", len(m.get_zones()))
     print(m)
