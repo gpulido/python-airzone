@@ -64,7 +64,7 @@ class Machine:
         if self._zones == {}:
             self.discover_zones()
         for z in self.machine_state:
-            self._zones[z['zoneID']].set_zone_state(z)
+            self._zones[z['zoneID']].zone_state = z
 
     def get_zones(self):
         return self._zones.values()
@@ -100,13 +100,12 @@ class Machine:
     def _get_zone_property(self, zone_id, prop):
         z_id = zone_id
         if z_id == 0:
-            z_id = self._zones.keys()[0]
+            z_id = next(iter(self._zones))            
         if prop in self._zones[z_id].zone_state:
             return self._zones[z_id].zone_state[prop]        
         return None
 
-    def set_operation_mode(self, mode):
-        self.set_zone_parameter_value(0, 'mode', mode)
+
 
     @property
     def speed(self):
@@ -119,13 +118,17 @@ class Machine:
     def speed(self, speed):
         self.set_zone_parameter_value(0, 'speed', speed)
     
-    
-    def get_operation_mode(self):       
-        return OperationMode(self.get_zone_property(0, 'mode'))
+    @property
+    def operation_mode(self):       
+        return OperationMode(self._get_zone_property(0, 'mode'))
+
+    @operation_mode.setter
+    def operation_mode(self, mode):
+        self.set_zone_parameter_value(0, 'mode', mode)
     
     @property    
     def units(self):
-        return TempUnits(self.get_zone_property(0, 'units'))
+        return TempUnits(self._get_zone_property(0, 'units'))
 
     def unique_id(self):
         return f'Local_Api{self._machine_id}_{str(self._machine_ip)}'
@@ -133,7 +136,7 @@ class Machine:
     def __str__(self):
         zs = "\n".join([str(z) for z in self.get_zones()])
         return "Machine with id: " + str(self._machine_id) + \
-                "Mode: " + str(self.get_operation_mode()) + \
+                "Mode: " + str(self.operation_mode) + \
                 "\nZones\n" + zs
 
 
@@ -141,7 +144,7 @@ class Zone:
     def __init__(self, machine, zone_id, data = {}):
         self._machine = machine
         self._zone_id = zone_id        
-        self.set_zone_state(data) 
+        self.zone_state = data
               
     def _set_parameter_value(self, prop, value):
         self._machine.set_zone_parameter_value(self._zone_id, prop, value)
@@ -209,8 +212,8 @@ class Zone:
                " Name: " + str(self.name) + \
                " Zone is On: " + str(self.is_on()) + \
                " Air demand is: " + str(self.air_demand) + \
-               " Room Temp: " + str(round(self.room_temp, 1)) + \
-               " " + str(self._machine._units[self.units]) +\
+               " Room Temp: " + str(round(self.local_temperature, 1)) + \
+               " " + str(self._machine.units) +\
                " Room humidity: " + str(self.room_humidity) + \
                " Max_Temp: " + str(self.max_temp) + \
                " Min_Temp: " + str(self.min_temp)
