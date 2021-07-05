@@ -17,6 +17,7 @@ class OperationMode(IntEnum):
     def _missing_(cls, value):
         return OperationMode.STOP
 
+
 class TempUnits(IntEnum):
     CELSIUS = 0
     FAHRENHEIT = 1
@@ -36,6 +37,7 @@ class Speed(IntEnum):
     def _missing_(cls, value):
         return Speed.AUTO
 
+
 class Machine:
 
     def __init__(self, machine_ipaddr, port=3000, system_id=1, vaf_cbs=False):
@@ -45,9 +47,9 @@ class Machine:
         self._data = {'SystemID': self._machine_id, 'ZoneID': 0}
         self._error_log = []
         self._machine_state = None
-        self._zones = {}                
-        self.get_system_data()                
-    
+        self._zones = {}
+        self.get_system_data()
+
     @property
     def machine_state(self):
         return self._machine_state
@@ -57,7 +59,7 @@ class Machine:
         self._machine_state = value
         self.update_zones()
 
-    def discover_zones(self):                
+    def discover_zones(self):
         self._zones = {z['zoneID']: Zone(self, z['zoneID'], z) for z in self.machine_state if z['zoneID'] != 0}
 
     def update_zones(self):
@@ -68,7 +70,7 @@ class Machine:
 
     def get_zones(self):
         return self._zones.values()
-    
+
     def handle_response(self, response):
         if response.status_code == 200:
             response_json = response.json()
@@ -77,11 +79,11 @@ class Machine:
             print(f'[!] [{response.status_code}] Server Error')
             return None
         response.raise_for_status()
-        
+
     def get_system_data(self):
         try:
             response = requests.post(url=self._API_ENDPOINT,
-                                           json=self._data)
+                                     json=self._data)
             self.handle_response(response)
         except requests.exceptions.RequestException as e:
             raise SystemExit(e)
@@ -93,72 +95,70 @@ class Machine:
             self._data[parameter] = value
             response = requests.put(url=self._API_ENDPOINT,
                                     json=self._data)
-            self.handle_response(response)            
+            self.handle_response(response)
         except requests.exceptions.RequestException as e:
             raise SystemExit(e)
-    
+
     def _get_zone_property(self, zone_id, prop):
         z_id = zone_id
         if z_id == 0:
-            z_id = next(iter(self._zones))            
+            z_id = next(iter(self._zones))
         if prop in self._zones[z_id].zone_state:
-            return self._zones[z_id].zone_state[prop]        
+            return self._zones[z_id].zone_state[prop]
         return None
-
-
 
     @property
     def speed(self):
         speed = self._get_zone_property(0, 'speed')
-        if speed != None:
+        if speed is not None:
             return Speed(speed)
         return Speed.AUTO
-    
+
     @speed.setter
     def speed(self, speed):
         self.set_zone_parameter_value(0, 'speed', speed)
-    
+
     @property
-    def operation_mode(self):       
+    def operation_mode(self):
         return OperationMode(self._get_zone_property(0, 'mode'))
 
     @operation_mode.setter
     def operation_mode(self, mode):
         self.set_zone_parameter_value(0, 'mode', mode)
-    
-    @property    
+
+    @property
     def units(self):
         return TempUnits(self._get_zone_property(0, 'units'))
 
     def unique_id(self):
         return f'Local_Api{self._machine_id}_{str(self._machine_ip)}'
-  
+
     def __str__(self):
         zs = "\n".join([str(z) for z in self.get_zones()])
         return "Machine with id: " + str(self._machine_id) + \
-                "Mode: " + str(self.operation_mode) + \
-                "\nZones\n" + zs
+               "Mode: " + str(self.operation_mode) + \
+               "\nZones\n" + zs
 
 
 class Zone:
-    def __init__(self, machine, zone_id, data = {}):
+    def __init__(self, machine, zone_id, data={}):
         self._machine = machine
-        self._zone_id = zone_id        
-        self.zone_state = data
-              
+        self._zone_id = zone_id
+        self._zone_state = data
+
     def _set_parameter_value(self, prop, value):
         self._machine.set_zone_parameter_value(self._zone_id, prop, value)
 
     @property
     def zone_state(self):
         return self._zone_state
-    
+
     @zone_state.setter
     def zone_state(self, value):
         self._zone_state = value
-    
+
     def is_on(self):
-        return self.zone_state['on']
+        return self._zone_state['on']
 
     def turn_on(self):
         self._set_parameter_value('on', 1)
@@ -168,55 +168,55 @@ class Zone:
 
     @property
     def signal_temperature_value(self):
-        return self.zone_state['setpoint']
-    
+        return self._zone_state['setpoint']
+
     @signal_temperature_value.setter
     def signal_temperature_value(self, setpoint):
         self._set_parameter_value('setpoint', setpoint)
 
     @property
     def name(self):
-        return self.zone_state['name']
-    
+        return self._zone_state['name']
+
     @name.setter
     def name(self, name):
         self._set_parameter_value('name', name)
 
     @property
     def max_temp(self):
-        return self.zone_state['maxTemp']
+        return self._zone_state['maxTemp']
 
     @property
     def min_temp(self):
-        return self.zone_state['minTemp']
+        return self._zone_state['minTemp']
 
     @property
     def local_temperature(self):
-        return self.zone_state['roomTemp']
+        return self._zone_state['roomTemp']
 
     @property
     def room_humidity(self):
-        return self.zone_state['humidity']
+        return self._zone_state['humidity']
 
     @property
     def air_demand(self):
-        return self.zone_state['air_demand']
+        return self._zone_state['air_demand']
 
     @property
     def floor_demand(self):
-        return self.zone_state['floor_demand']
-
+        return self._zone_state['floor_demand']
 
     def __str__(self):
-        return "Zone with id: " + str(self._zone_id) + \
-               " Name: " + str(self.name) + \
-               " Zone is On: " + str(self.is_on()) + \
-               " Air demand is: " + str(self.air_demand) + \
-               " Room Temp: " + str(round(self.local_temperature, 1)) + \
-               " " + str(self._machine.units) +\
-               " Room humidity: " + str(self.room_humidity) + \
-               " Max_Temp: " + str(self.max_temp) + \
-               " Min_Temp: " + str(self.min_temp)
+        return "Zone with id: " + str(self.zone_state['zoneID']) + \
+               " Name: " + str(self.zone_state['name']) + \
+               " Zone is On: " + str(self.zone_state['on']) + \
+               " Air demand is: " + str(self.zone_state['air_demand']) + \
+               " Floor demand is: " + str(self.zone_state['floor_demand']) + \
+               " Room Temp: " + str(round(self.zone_state['roomTemp'], 1)) + \
+               " " + str(self._machine.units) + \
+               " Room humidity: " + str(self.zone_state['humidity']) + \
+               " Max_Temp: " + str(self.zone_state['maxTemp']) + \
+               " Min_Temp: " + str(self.zone_state['minTemp'])
 
 
 if __name__ == '__main__':
@@ -226,3 +226,9 @@ if __name__ == '__main__':
     print(m.machine_state)
     print("Number of zones: ", len(m.get_zones()))
     print(m)
+    m.operation_mode = OperationMode.COOLING
+    print(m.operation_mode)
+    # m.operation_mode = OperationMode.STOP
+    # print(m.operation_mode)
+    # m._zones[1].signal_temperature_value = 22
+    # m._zones[2].signal_temperature_value = 23

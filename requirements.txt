@@ -1,5 +1,6 @@
-pyModbus
+pyModbus~=2.5.2
 pybase64
 importlib-metadata
-requests
+requests~=2.21.0
 Python-Deprecated
+pytest
