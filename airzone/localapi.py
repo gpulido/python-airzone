@@ -36,7 +36,7 @@ class Speed(IntEnum):
     def _missing_(cls, value):
         return Speed.AUTO
 
-class Machine:
+class Machine():
 
     def __init__(self, machine_ipaddr, port=3000, system_id=1, vaf_cbs=False):
         self._API_ENDPOINT = f"http://{machine_ipaddr}:{str(port)}/api/v1/hvac"
@@ -46,7 +46,7 @@ class Machine:
         self._error_log = []
         self._machine_state = None
         self._zones = {}                
-        self.get_system_data()                
+        self._retrieve_system_data()                
     
     @property
     def machine_state(self):
@@ -66,10 +66,11 @@ class Machine:
         for z in self.machine_state:
             self._zones[z['zoneID']].zone_state = z
 
-    def get_zones(self):
+    @property
+    def zones(self):
         return self._zones.values()
     
-    def handle_response(self, response):
+    def _handle_response(self, response):
         if response.status_code == 200:
             response_json = response.json()
             self.machine_state = response_json['data']
@@ -78,7 +79,7 @@ class Machine:
             return None
         response.raise_for_status()
         
-    def get_system_data(self):
+    def _retrieve_system_data(self):
         try:
             response = requests.post(url=self._API_ENDPOINT,
                                            json=self._data)
@@ -106,7 +107,6 @@ class Machine:
         return None
 
 
-
     @property
     def speed(self):
         speed = self._get_zone_property(0, 'speed')
@@ -130,11 +130,12 @@ class Machine:
     def units(self):
         return TempUnits(self._get_zone_property(0, 'units'))
 
+    @property
     def unique_id(self):
         return f'Local_Api{self._machine_id}_{str(self._machine_ip)}'
   
     def __str__(self):
-        zs = "\n".join([str(z) for z in self.get_zones()])
+        zs = "\n".join([str(z) for z in self.zones])
         return "Machine with id: " + str(self._machine_id) + \
                 "Mode: " + str(self.operation_mode) + \
                 "\nZones\n" + zs
@@ -224,5 +225,5 @@ if __name__ == '__main__':
     m = Machine('192.168.90.9', system_id=1)
     print("Printing Post JSON data")
     print(m.machine_state)
-    print("Number of zones: ", len(m.get_zones()))
+    print("Number of zones: ", len(m.zones))
     print(m)

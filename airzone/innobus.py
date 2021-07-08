@@ -1,11 +1,11 @@
 import datetime
-from enum import Enum
+from enum import Enum, IntEnum
 
 from airzone.protocol import *
 from deprecated import deprecated  # type: ignore
 
 
-class MachineOperationMode(Enum):
+class OperationMode(Enum):
     STOP = 0
     COLD = 1
     HOT = 2
@@ -21,11 +21,15 @@ class ZoneMode(Enum):
     AUTOMATIC_SLEEP = 3
 
 
-class FancoilSpeed(Enum):
+class FancoilSpeed(IntEnum):
     AUTOMATIC = 0
     SPEED_1 = 1
     SPEED_2 = 2
     SPEED_3 = 3
+    
+    @classmethod
+    def _missing_(cls, value):
+        return FancoilSpeed.AUTOMATIC
 
 
 class ProtectionTime(Enum):
@@ -78,13 +82,42 @@ class Machine():
         self._gateway = gateway
         self._machineId = machineId
         self._machine_state = None
-        self.sync_clock()
-        self._zones = []
-        self.discover_zones()
-        self.retrieve_machine_status()
+        self.sync_clock(True)
+        self._zones = {}        
+        self._retrieve_machine_state()
 
+        
+    @property
+    def machine_state(self):
+        return self._machine_state
+
+    @machine_state.setter
+    def machine_state(self, value):
+        self._machine_state = value
+        self.update_zones()
+
+    def discover_zones(self):
+        zones = self.read_registers(9, 2)
+        config_zones1 = true_in_list(list(reversed(bitfield(zones[0]))))
+        config_zones2 = [
+            v + 8 for v in true_in_list(list(reversed(bitfield(zones[1]))))]
+        config_zones = config_zones1 + config_zones2
+        self._zones = {i+1: Zone(self, i + 1) for i in config_zones}
+    
+
+    def update_zones(self):
+        if self._zones == {}:
+            self.discover_zones()
+        for zone in self._zones.values():
+            zone.retrieve_zone_status()
+
+    @property            
+    def zones(self):
+        return self._zones.values()
+
+    @deprecated('use property')
     def get_zones(self):
-        return list(filter(lambda z: z.zoneId != 0, self._zones))
+        return self.zones
 
     def read_registers(self, address, numRegisters):
         return self._gateway.read_input_registers(
@@ -94,11 +127,8 @@ class Machine():
         return self._gateway.write_single_register(
             self._machineId, address, value)
 
-    def retrieve_machine_status(self, retrieve_zones=True):
-        self._machine_state = self.read_registers(0, 21)
-        if retrieve_zones:
-            for zone in self._zones:
-                zone.retrieve_zone_status()
+    def _retrieve_machine_state(self, retrieve_zones=True):
+        self.machine_state = self.read_registers(0, 21)
 
     def sync_clock(self, force=False):
         current_clock = self.read_registers(4, 1)
@@ -110,27 +140,42 @@ class Machine():
         value = date_as_number(d)
         self.write_register(4, value)
 
-    def discover_zones(self):
-        zones = self.read_registers(9, 2)
-        config_zones1 = true_in_list(list(reversed(bitfield(zones[0]))))
-        config_zones2 = [
-            v + 8 for v in true_in_list(list(reversed(bitfield(zones[1]))))]
-        config_zones = config_zones1 + config_zones2
-        self._zones = [Zone(self, i + 1) for i in config_zones]
-
-    def get_operation_mode(self):
+    @property
+    def operation_mode(self):
         if self._machine_state == None:
-            return MachineOperationMode.STOP
-        return MachineOperationMode(self._machine_state[0])
+            return OperationMode.STOP
+        return OperationMode(self._machine_state[0])
 
-    def set_operation_mode(self, machineOperationMode):
-        self.write_register(0, MachineOperationMode[machineOperationMode].value)
+    
+    @operation_mode.setter
+    def operation_mode(self, operationMode):
+        self.write_register(0, OperationMode[OperationMode].value)
+    
 
-    def get_hotplus_differential_signal(self):
+    @deprecated('use property')
+    def get_operation_mode(self):
+        return self.operation_mode
+
+
+    @deprecated('use property')
+    def set_operation_mode(self, operationMode):
+        self.operation_mode = operationMode
+
+    @property
+    def hotplus_differential_signal(self):
         return state_value(self._machine_state, 2)
 
-    def get_protection_time(self):
+    @deprecated('use property')
+    def get_hotplus_differential_signal(self):
+        return self.hotplus_differential_signal
+
+    @property
+    def protection_time(self):
         return state_value(self._machine_state, 3, 0, 0)
+
+    @deprecated('use property')
+    def get_protection_time(self):
+        return self.protection_time
 
     def central_relay_state_1(self):
         if self._machine_state == None:
@@ -142,12 +187,10 @@ class Machine():
         return "Machine with id: " + str(self._machineId) + \
                "Zones: \n" + zs
 
+    @property
     def unique_id(self):
         return f'Innobus_M{self._machineId}_{str(self._gateway)}'
 
-    @property
-    def machine_state(self):
-        return self._machine_state
 
     @deprecated('Use the machine_state property instead')
     def get_machine_state(self):
