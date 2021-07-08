@@ -200,12 +200,12 @@ class Machine():
 
 class Zone():
 
-    def __init__(self, machine, zoneId):
+    def __init__(self, machine, zone_id):
         self._machine = machine
-        self.zoneId = zoneId
+        self.zoneId = zone_id    
+        self.base_zone = zone_id * 256
         self._zone_state = None
-        self.base_zone = zoneId * 256
-        self.retrieve_zone_status()
+        self.retrieve_zone_state()
 
     def write_register(self, address, value):
         return self._machine.write_register(self.base_zone + address, value)
@@ -215,13 +215,21 @@ class Zone():
         self.write_register(address, new_value)
 
     def __str__(self):
-        return "Zone with id: " + str(self.zoneId) + \
+        return "Zone with id: " + str(self.zone_id) + \
                " ZoneMode: " + str(self.get_zone_mode()) + \
                " Tacto On: " + str(self.is_tacto_on()) + \
                " Hold On: " + str(self.is_zone_hold())
 
-    def retrieve_zone_status(self):
-        self._zone_state = self._machine.read_registers(self.base_zone, 13)
+    @property
+    def zone_state(self):
+        return self._zone_state
+    
+    @zone_state.setter
+    def zone_state(self, value):
+        self._zone_state = value
+
+    def retrieve_zone_state(self):
+        self.zone_state = self._machine.read_registers(self.base_zone, 13)
 
     # OPERATION ZONE MODE
     def is_sleep_on(self):
@@ -292,32 +300,67 @@ class Zone():
 
     ####
 
-    def get_min_signal_value(self):
+    @property
+    def min_temp(self):
         if self._zone_state == None:
             return -1
-        return self._zone_state[1] / 10
-
-    def set_min_signal_value(self, value):
+        return self._zone_state[1] / 10 
+    
+    @min_temp.setter
+    def min_temp(self, value):
         if value >= 18 or value <= 22:
             self.write_register(1, value * 10)
+    
+    
+    @deprecated('Use min_temp')
+    def get_min_signal_value(self):
+        return self.min_temp        
+    
+    @deprecated('Use min_temp')
+    def set_min_signal_value(self, value):
+        self.min_temp = value
 
-    def get_max_signal_value(self):
+    @property
+    def max_temp(self):
         if self._zone_state == None:
             return -1
         return self._zone_state[2] / 10
 
-    def set_max_signal_value(self, value):
+    @max_temp.setter
+    def max_temp(self, value):
         if value >= 25 or value <= 30:
-            self.write_register(2, value * 10)
+            self.write_register(2, value * 10)      
 
-    def get_signal_temperature_value(self):
-        if self._zone_state == None:
+    @deprecated('Use max_temp')
+    def get_max_signal_value(self):
+        return self.max_temp
+
+ 
+
+    @deprecated('Use max_temp')
+    def set_max_signal_value(self, value):
+        self.max_temp = value        
+
+    @property
+    def signal_temperature_value(self):
+        if self.zone_state == None:
             return -1
-        return self._zone_state[3] / 10
-
-    def set_signal_temperature_value(self, value):
+        return self.zone_state[3] / 10
+    
+    @signal_temperature_value.setter
+    def signal_temperature_value(self, value):
         if value >= 18 or value <= 30:
-            self.write_register(3, int(value * 10))
+            self.write_register(3, int(value * 10))   
+
+    @deprecated('use property')
+    def get_signal_temperature_value(self):
+        return self.signal_temperature_value
+
+
+    @deprecated('use property')
+    def set_signal_temperature_value(self, value):
+        self.signal_temperature_value = value
+        
 
     # ZONE CONFIGURATION
 
@@ -410,11 +453,22 @@ class Zone():
 
     ###
 
+    @property
+    def local_temperature(self):
+        return self._zone_state[10] / 10
+
+    @deprecated('use property')
     def get_local_temperature(self):
         return self._zone_state[10] / 10
 
+    @property
+    def dif_current_temp(self):
+        return self.signal_temperature_value - self.local_temperature()
+    
+    @deprecated('use property')
     def get_dif_current_temp(self):
-        return self.get_signal_temperature_value() - self.get_local_temperature()
+        return self.dif_current_temp
 
+    @property
     def unique_id(self):
         return f'{str(self._machine)}_Z{self.zoneId}'

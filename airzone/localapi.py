@@ -196,6 +196,10 @@ class Zone:
         return self.zone_state['roomTemp']
 
     @property
+    def dif_current_temp(self):
+        return self.signal_temperature_value - self.local_temperature
+
+    @property
     def room_humidity(self):
         return self.zone_state['humidity']
 
