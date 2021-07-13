@@ -5,7 +5,7 @@ from airzone.protocol import Gateway
 def airzone_factory(address, port, machineId, system="innobus", **kwargs):
     if system == 'localapi':
         from airzone.localapi import Machine
-        m = Machine(address, port, machineId, **kwargs)
+        m = Machine(address, port, machineId)
     else:
         gat = Gateway(address, port)
         if system == 'innobus':
@@ -26,8 +26,7 @@ if __name__ == '__main__':
     print(m._machine_state)
     print(z._zone_state)
     print(bool(z.is_tacto_on()))
-    print(z.get_signal_temperature_value())
-    print(z.get_signal_temperature_value())
+    print(z.get_signal_temperature_value())    
     print(z.is_floor_active())
     print(z.is_sleep_on())
     print(z.is_automatic_mode())
@@ -36,3 +35,11 @@ if __name__ == '__main__':
 
     print(state_value(z._zone_state, 0, 0, 1))
     print(format(z._zone_state[0], '016b'))
+
+    ## Localapi
+    # Lines for Tests. Adapt argument ip address and system id (1 == standard).
+    #m = airzone_factory('192.168.90.9', 3000, 1, "localapi")  
+    #print("Printing Post JSON data")
+    #print(m.machine_state)
+    #print("Number of zones: ", len(m.zones))
+    #print(m)

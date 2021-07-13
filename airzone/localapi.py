@@ -1,9 +1,11 @@
 """ Airzone Local api integration
 """
+import logging
 from enum import IntEnum
 
 import requests  # type: ignore
 
+_LOGGER = logging.getLogger(__name__)
 
 class OperationMode(IntEnum):
     STOP = 1
@@ -85,7 +87,7 @@ class Machine():
                                            json=self._data)
             self.handle_response(response)
         except requests.exceptions.RequestException as e:
-            raise SystemExit(e)
+            _LOGGER.exception(str(e))            
 
     def set_zone_parameter_value(self, zone_id, parameter, value):
         try:
@@ -96,7 +98,7 @@ class Machine():
                                     json=self._data)
             self.handle_response(response)            
         except requests.exceptions.RequestException as e:
-            raise SystemExit(e)
+            _LOGGER.exception(str(e))                        
     
     def _get_zone_property(self, zone_id, prop):
         z_id = zone_id
@@ -211,6 +213,11 @@ class Zone:
     def floor_demand(self):
         return self.zone_state['floor_demand']
 
+    
+    @property
+    def units(self):
+        return TempUnits(self.zone_state['units'])
+
 
     def __str__(self):
         return "Zone with id: " + str(self._zone_id) + \
@@ -218,16 +225,7 @@ class Zone:
                " Zone is On: " + str(self.is_on()) + \
                " Air demand is: " + str(self.air_demand) + \
                " Room Temp: " + str(round(self.local_temperature, 1)) + \
-               " " + str(self._machine.units) +\
+               " " + str(self.units) +\
                " Room humidity: " + str(self.room_humidity) + \
                " Max_Temp: " + str(self.max_temp) + \
                " Min_Temp: " + str(self.min_temp)
-
-
-if __name__ == '__main__':
-    # Lines for Tests. Adapt argument ip address and system id (1 == standard).
-    m = Machine('192.168.90.9', system_id=1)
-    print("Printing Post JSON data")
-    print(m.machine_state)
-    print("Number of zones: ", len(m.zones))
-    print(m)
