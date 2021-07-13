@@ -6,10 +6,10 @@ from pymodbus.client.sync import ModbusTcpClient as ModbusClient  # type: ignore
 
 
 def state_value(state, address, init=0, end=15):
-    '''
+    """
     init and end are included on the desired slice
-    '''
-    if state == None:
+    """
+    if state is None:
         return 0
     binary = format(state[address], '016b')
     r_init = len(binary)-1-init
@@ -19,7 +19,7 @@ def state_value(state, address, init=0, end=15):
 
 
 def bit_value(state, address, bit):
-    if state == None:
+    if state is None:
         return 0
     # return state_value(state, address, bit, bit)
     temp = format(state[address], '016b')
