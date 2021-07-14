@@ -48,7 +48,7 @@ class Machine():
         self._error_log = []
         self._machine_state = None
         self._zones = {}                
-        self._retrieve_system_data()                
+        self.retrieve_system_data()                
     
     @property
     def machine_state(self):
@@ -81,7 +81,7 @@ class Machine():
             return None
         response.raise_for_status()
         
-    def _retrieve_system_data(self):
+    def retrieve_system_data(self):
         try:
             response = requests.post(url=self._API_ENDPOINT,
                                            json=self._data)
