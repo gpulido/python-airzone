@@ -85,7 +85,7 @@ class Machine():
         try:
             response = requests.post(url=self._API_ENDPOINT,
                                            json=self._data)
-            self.handle_response(response)
+            self._handle_response(response)
         except requests.exceptions.RequestException as e:
             _LOGGER.exception(str(e))            
 
@@ -96,7 +96,7 @@ class Machine():
             self._data[parameter] = value
             response = requests.put(url=self._API_ENDPOINT,
                                     json=self._data)
-            self.handle_response(response)            
+            self._handle_response(response)            
         except requests.exceptions.RequestException as e:
             _LOGGER.exception(str(e))                        
     
@@ -112,7 +112,7 @@ class Machine():
     @property
     def speed(self):
         speed = self._get_zone_property(0, 'speed')
-        if speed != None:
+        if speed is not None:
             return Speed(speed)
         return Speed.AUTO
     
