@@ -77,7 +77,7 @@ class Machine():
             response_json = response.json()
             self.machine_state = response_json['data']
         elif response.status_code >= 500:
-            print(f'[!] [{response.status_code}] Server Error')
+            print(f'[!] [{response.status_code}] Server Error: ' + response.text)            
             return None
         response.raise_for_status()
         
@@ -140,7 +140,7 @@ class Machine():
         zs = "\n".join([str(z) for z in self.zones])
         return "Machine with id: " + str(self._machine_id) + \
                 "Mode: " + str(self.operation_mode) + \
-                "\nZones\n" + zs
+                "\nZones\n" + str(zs)
 
 
 class Zone:
