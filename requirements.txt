@@ -1,5 +1,5 @@
 pyModbus
 pybase64
 importlib-metadata
-requests
+aiohttp
 Python-Deprecated

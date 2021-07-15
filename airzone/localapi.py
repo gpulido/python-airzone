@@ -1,9 +1,10 @@
 """ Airzone Local api integration
 """
+import asyncio
 import logging
 from enum import IntEnum
 
-import requests  # type: ignore
+import aiohttp  # type: ignore
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -48,7 +49,7 @@ class Machine():
         self._error_log = []
         self._machine_state = None
         self._zones = {}                
-        self.retrieve_system_data()                
+        asyncio.run(self.async_retrieve_system_data())
     
     @property
     def machine_state(self):
@@ -72,34 +73,34 @@ class Machine():
     def zones(self):
         return self._zones.values()
     
-    def _handle_response(self, response):
-        if response.status_code == 200:
-            response_json = response.json()
-            self.machine_state = response_json['data']
-        elif response.status_code >= 500:
-            print(f'[!] [{response.status_code}] Server Error')
-            return None
-        response.raise_for_status()
         
-    def retrieve_system_data(self):
+    async def async_retrieve_system_data(self):
         try:
-            response = requests.post(url=self._API_ENDPOINT,
-                                           json=self._data)
-            self._handle_response(response)
-        except requests.exceptions.RequestException as e:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(self._API_ENDPOINT, json=self._data) as r:
+                    resp = await r.json()
+                    self.machine_state = resp['data']
+            # TODO: handle exceptions
+        except Exception as e:
             _LOGGER.exception(str(e))            
 
-    def set_zone_parameter_value(self, zone_id, parameter, value):
+    async def async_set_zone_parameter_value(self, zone_id, parameter, value):
         try:
 
             self._data['ZoneID'] = zone_id
             self._data[parameter] = value
-            response = requests.put(url=self._API_ENDPOINT,
-                                    json=self._data)
-            self._handle_response(response)            
-        except requests.exceptions.RequestException as e:
-            _LOGGER.exception(str(e))                        
-    
+            async with aiohttp.ClientSession() as session:
+                async with session.put(self._API_ENDPOINT, json=self._data) as r:
+                    resp = await r.json()
+                    self.machine_state = resp['data']
+            # TODO: handle exceptions        
+        except Exception as e:
+            _LOGGER.exception(str(e))
+
+    def set_zone_parameter_value(self, zone_id, parameter, value):
+        asyncio.run(self.async_set_zone_parameter_value(zone_id, parameter, value))
+  
+   
     def _get_zone_property(self, zone_id, prop):
         z_id = zone_id
         if z_id == 0:
