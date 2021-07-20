@@ -103,7 +103,7 @@ class Machine():
                 # should be done just after this
                 if zone_id == 0:
                     zone_id = next(iter(self._zones))    
-                self._zones[zone_id][parameter] = value
+                self._zones[zone_id].zone_state[parameter] = value
             elif response.status_code >= 500:
                 print(f'[!] [{response.status_code}] Server Error: ' + response.text)            
             
