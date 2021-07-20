@@ -48,7 +48,7 @@ class Machine():
         self._error_log = []
         self._machine_state = None
         self._zones = {}                
-        self.retrieve_system_data()                
+        self.retrieve_system_state()                
     
     @property
     def machine_state(self):
@@ -57,6 +57,7 @@ class Machine():
     @machine_state.setter
     def machine_state(self, value):
         self._machine_state = value
+        _LOGGER.debug(value)
         self.update_zones()
 
     def discover_zones(self):                
@@ -72,20 +73,17 @@ class Machine():
     def zones(self):
         return self._zones.values()
     
-    def _handle_response(self, response):
-        if response.status_code == 200:
-            response_json = response.json()
-            self.machine_state = response_json['data']
-        elif response.status_code >= 500:
-            print(f'[!] [{response.status_code}] Server Error: ' + response.text)            
-            return None
-        response.raise_for_status()
-        
-    def retrieve_system_data(self):
+
+    def retrieve_system_state(self):
         try:
             response = requests.post(url=self._API_ENDPOINT,
                                            json=self._data)
-            self._handle_response(response)
+            if response.status_code == 200:
+                response_json = response.json()
+                self.machine_state = response_json['data']                  
+            elif response.status_code >= 500:
+                print(f'[!] [{response.status_code}] Server Error: ' + response.text)            
+             
         except requests.exceptions.RequestException as e:
             _LOGGER.exception(str(e))            
 
@@ -96,7 +94,17 @@ class Machine():
             self._data[parameter] = value
             response = requests.put(url=self._API_ENDPOINT,
                                     json=self._data)
-            self._handle_response(response)            
+
+            if response.status_code == 200:
+                # Update successfully. We update manually the value.
+                # WARNING: this will only update the first zone values for the system attributes.
+                # so until a new retrieve_system_state is made the only zone with the proper
+                # system values is the first one. It this is not desirable a retrieve_system_state
+                # should be done just after this
+                self._zones[zone_id][parameter] = value
+            elif response.status_code >= 500:
+                print(f'[!] [{response.status_code}] Server Error: ' + response.text)            
+            
         except requests.exceptions.RequestException as e:
             _LOGGER.exception(str(e))                        
     
@@ -217,6 +225,12 @@ class Zone:
     @property
     def units(self):
         return TempUnits(self.zone_state['units'])
+
+
+    @property
+    def unique_id(self):
+        # TODO: review
+        return f'{self.name}_Z{str(self._zone_id)}'        
 
 
     def __str__(self):
