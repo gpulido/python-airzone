@@ -101,6 +101,8 @@ class Machine():
                 # so until a new retrieve_system_state is made the only zone with the proper
                 # system values is the first one. It this is not desirable a retrieve_system_state
                 # should be done just after this
+                if zone_id == 0:
+                    zone_id = next(iter(self._zones))    
                 self._zones[zone_id][parameter] = value
             elif response.status_code >= 500:
                 print(f'[!] [{response.status_code}] Server Error: ' + response.text)            
