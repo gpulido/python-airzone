@@ -47,9 +47,9 @@ class Machine():
         self._data = {'SystemID': self._machine_id, 'ZoneID': 0}
         self._error_log = []
         self._machine_state = None
-        self._zones = {}                
-        self.retrieve_system_state()                
-    
+        self._zones = {}
+        self.retrieve_system_state()
+
     @property
     def machine_state(self):
         return self._machine_state
@@ -60,8 +60,9 @@ class Machine():
         _LOGGER.debug(value)
         self.update_zones()
 
-    def discover_zones(self):                
+    def discover_zones(self):
         self._zones = {z['zoneID']: Zone(self, z['zoneID'], z) for z in self.machine_state if z['zoneID'] != 0}
+        self._system_zone = next(iter(self._zones))
 
     def update_zones(self):
         if self._zones == {}:
@@ -72,7 +73,7 @@ class Machine():
     @property
     def zones(self):
         return self._zones.values()
-    
+
 
     def retrieve_system_state(self):
         try:
@@ -80,12 +81,12 @@ class Machine():
                                            json=self._data)
             if response.status_code == 200:
                 response_json = response.json()
-                self.machine_state = response_json['data']                  
+                self.machine_state = response_json['data']
             elif response.status_code >= 500:
-                print(f'[!] [{response.status_code}] Server Error: ' + response.text)            
-             
+                print(f'[!] [{response.status_code}] Server Error: ' + response.text)
+
         except requests.exceptions.RequestException as e:
-            _LOGGER.exception(str(e))            
+            _LOGGER.exception(str(e))
 
     def set_zone_parameter_value(self, zone_id, parameter, value):
         try:
@@ -101,51 +102,46 @@ class Machine():
                 # so until a new retrieve_system_state is made the only zone with the proper
                 # system values is the first one. It this is not desirable a retrieve_system_state
                 # should be done just after this
-                if zone_id == 0:
-                    zone_id = next(iter(self._zones))    
                 self._zones[zone_id].zone_state[parameter] = value
             elif response.status_code >= 500:
-                print(f'[!] [{response.status_code}] Server Error: ' + response.text)            
-            
+                print(f'[!] [{response.status_code}] Server Error: ' + response.text)
+
         except requests.exceptions.RequestException as e:
-            _LOGGER.exception(str(e))                        
-    
+            _LOGGER.exception(str(e))
+
     def _get_zone_property(self, zone_id, prop):
-        z_id = zone_id
-        if z_id == 0:
-            z_id = next(iter(self._zones))            
-        if prop in self._zones[z_id].zone_state:
-            return self._zones[z_id].zone_state[prop]        
+        if prop in self._zones[zone_id].zone_state:
+            return self._zones[zone_id].zone_state[prop]
         return None
 
 
     @property
     def speed(self):
-        speed = self._get_zone_property(0, 'speed')
+        speed = self._get_zone_property(self._system_zone, 'speed')
         if speed is not None:
             return Speed(speed)
         return Speed.AUTO
-    
+
     @speed.setter
     def speed(self, speed):
-        self.set_zone_parameter_value(0, 'speed', speed)
-    
+        self.set_zone_parameter_value(self._system_zone, 'speed', speed)
+
     @property
-    def operation_mode(self):       
-        return OperationMode(self._get_zone_property(0, 'mode'))
+    def operation_mode(self):
+        return OperationMode(self._get_zone_property(self._system_zone, 'mode'))
 
     @operation_mode.setter
     def operation_mode(self, mode):
-        self.set_zone_parameter_value(0, 'mode', mode)
-    
-    @property    
+        self.set_zone_parameter_value(self._system_zone, 'mode', mode)
+
+    @property
     def units(self):
-        return TempUnits(self._get_zone_property(0, 'units'))
+        return TempUnits(self._get_zone_property(self._system_zone, 'units'))
 
     @property
     def unique_id(self):
         return f'Local_Api{self._machine_id}_{str(self._machine_ip)}'
-  
+
     def __str__(self):
         zs = "\n".join([str(z) for z in self.zones])
         return "Machine with id: " + str(self._machine_id) + \
@@ -156,20 +152,20 @@ class Machine():
 class Zone:
     def __init__(self, machine, zone_id, data = {}):
         self._machine = machine
-        self._zone_id = zone_id        
+        self._zone_id = zone_id
         self.zone_state = data
-              
+
     def _set_parameter_value(self, prop, value):
         self._machine.set_zone_parameter_value(self._zone_id, prop, value)
 
     @property
     def zone_state(self):
         return self._zone_state
-    
+
     @zone_state.setter
     def zone_state(self, value):
         self._zone_state = value
-    
+
     def is_on(self):
         return self.zone_state['on']
 
@@ -182,7 +178,7 @@ class Zone:
     @property
     def signal_temperature_value(self):
         return self.zone_state['setpoint']
-    
+
     @signal_temperature_value.setter
     def signal_temperature_value(self, setpoint):
         self._set_parameter_value('setpoint', setpoint)
@@ -190,7 +186,7 @@ class Zone:
     @property
     def name(self):
         return self.zone_state['name']
-    
+
     @name.setter
     def name(self, name):
         self._set_parameter_value('name', name)
@@ -223,7 +219,7 @@ class Zone:
     def floor_demand(self):
         return self.zone_state['floor_demand']
 
-    
+
     @property
     def units(self):
         return TempUnits(self.zone_state['units'])
@@ -232,7 +228,7 @@ class Zone:
     @property
     def unique_id(self):
         # TODO: review
-        return f'{self.name}_Z{str(self._zone_id)}'        
+        return f'{self.name}_Z{str(self._zone_id)}'
 
 
     def __str__(self):
