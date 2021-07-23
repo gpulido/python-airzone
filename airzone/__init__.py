@@ -1,12 +1,14 @@
 #!/usr/bin/python
-from airzone.protocol import Gateway
+
 
 
 def airzone_factory(address, port, machineId, system="innobus", **kwargs):
-    if system == 'localapi':
-        from airzone.localapi import Machine
-        m = Machine(address, port, machineId)
+    if system == 'localapi':        
+        from airzone.localapi import Machine, API
+        api = API(address, port)
+        m = Machine(api, machineId)
     else:
+        from airzone.protocol import Gateway
         gat = Gateway(address, port)
         if system == 'innobus':
             from airzone.innobus import Machine

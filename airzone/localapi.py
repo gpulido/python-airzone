@@ -38,17 +38,65 @@ class Speed(IntEnum):
     def _missing_(cls, value):
         return Speed.AUTO
 
+
+class API():
+
+    def __init__(self,  machine_ipaddr, port=3000):
+        self._machine_ip = machine_ipaddr
+        self._port = port
+        self._API_ENDPOINT = f"http://{machine_ipaddr}:{str(port)}/api/v1/hvac"
+    
+    def retrieve_state(self, system_id, zone_id):
+        try:
+            data = {'SystemID': system_id, 'ZoneID': zone_id}
+            response = requests.post(url=self._API_ENDPOINT,
+                                           json=data)
+            if response.status_code == 200:
+                response_json = response.json()
+                return response_json['data']                
+            elif response.status_code >= 500:
+                _LOGGER.info(f'[!] [{response.status_code}] Server Error: ' + response.text)                
+                return None
+
+        except requests.exceptions.RequestException as e:
+            _LOGGER.exception(str(e))
+
+    def set_zone_parameter_value(self, machine_id, zone_id, parameter, value):
+        try:
+            
+            data = {'systemID': machine_id, 'zoneID': zone_id}
+            data[parameter] = value
+            response = requests.put(url=self._API_ENDPOINT,
+                                    json=data)
+
+            if response.status_code == 200:
+                # Update successfully. We update manually the value.
+                # WARNING: this will only update the first zone values for the system attributes.
+                # so until a new retrieve_system_state is made the only zone with the proper
+                # system values is the first one. It this is not desirable a retrieve_system_state
+                # should be done just after this
+                return value                
+            elif response.status_code >= 500:
+                _LOGGER.info(f'[!] [{response.status_code}] Server Error: ' + response.text)
+                return None
+                
+
+        except requests.exceptions.RequestException as e:
+            _LOGGER.exception(str(e))
+
+    
+
 class Machine():
 
-    def __init__(self, machine_ipaddr, port=3000, system_id=1, vaf_cbs=False):
-        self._API_ENDPOINT = f"http://{machine_ipaddr}:{str(port)}/api/v1/hvac"
-        self._machine_id = system_id
-        self._machine_ip = machine_ipaddr
-        self._data = {'SystemID': self._machine_id, 'ZoneID': 0}
-        self._error_log = []
+    def __init__(self, api, system_id=1, vaf_cbs=False):
+        self._api = api        
+        self._machine_id = system_id        
+        self._error_log = []        
         self._machine_state = None
+        self._machine_zone_state = None
         self._zones = {}
-        self.retrieve_system_state()
+        
+        self.retrieve_state()
 
     @property
     def machine_state(self):
@@ -69,74 +117,47 @@ class Machine():
             self.discover_zones()
         for z in self.machine_state:
             self._zones[z['zoneID']].zone_state = z
-
+            if z['zoneID'] == self._system_zone:
+                self._machine_zone_state = z
+                    
     @property
     def zones(self):
         return self._zones.values()
 
 
-    def retrieve_system_state(self):
-        try:
-            response = requests.post(url=self._API_ENDPOINT,
-                                           json=self._data)
-            if response.status_code == 200:
-                response_json = response.json()
-                self.machine_state = response_json['data']
-            elif response.status_code >= 500:
-                print(f'[!] [{response.status_code}] Server Error: ' + response.text)
-
-        except requests.exceptions.RequestException as e:
-            _LOGGER.exception(str(e))
-
-    def set_zone_parameter_value(self, zone_id, parameter, value):
-        try:
-
-            self._data['ZoneID'] = zone_id
-            self._data[parameter] = value
-            response = requests.put(url=self._API_ENDPOINT,
-                                    json=self._data)
-
-            if response.status_code == 200:
-                # Update successfully. We update manually the value.
-                # WARNING: this will only update the first zone values for the system attributes.
-                # so until a new retrieve_system_state is made the only zone with the proper
-                # system values is the first one. It this is not desirable a retrieve_system_state
-                # should be done just after this
-                self._zones[zone_id].zone_state[parameter] = value
-            elif response.status_code >= 500:
-                print(f'[!] [{response.status_code}] Server Error: ' + response.text)
-
-        except requests.exceptions.RequestException as e:
-            _LOGGER.exception(str(e))
-
-    def _get_zone_property(self, zone_id, prop):
-        if prop in self._zones[zone_id].zone_state:
-            return self._zones[zone_id].zone_state[prop]
-        return None
-
+    def retrieve_state(self):
+        state = self._api.retrieve_state(self._machine_id, 0)
+        if state is not None:
+            self.machine_state = state
+            
 
     @property
     def speed(self):
-        speed = self._get_zone_property(self._system_zone, 'speed')
-        if speed is not None:
-            return Speed(speed)
+        if 'speed' in self._machine_zone_state:
+            speed = self._machine_zone_state['speed']
+            if speed is not None:
+                return Speed(speed)
         return Speed.AUTO
 
     @speed.setter
     def speed(self, speed):
-        self.set_zone_parameter_value(self._system_zone, 'speed', speed)
+        value = self._api.set_zone_parameter_value(self._machine_id, self._system_zone, 'speed', speed)
+        if value:
+            self._machine_zone_state['speed'] = value
 
     @property
     def operation_mode(self):
-        return OperationMode(self._get_zone_property(self._system_zone, 'mode'))
+        return OperationMode(self._machine_zone_state['mode'])
 
     @operation_mode.setter
     def operation_mode(self, mode):
-        self.set_zone_parameter_value(self._system_zone, 'mode', mode)
+        value = self.set_zone_parameter_value(self._machine_id, self._system_zone, 'mode', mode)
+        if value:
+            self._machine_zone_state['mode'] = value
 
     @property
     def units(self):
-        return TempUnits(self._get_zone_property(self._system_zone, 'units'))
+        return TempUnits(self._machine_zone_state['units'])        
 
     @property
     def unique_id(self):
@@ -150,13 +171,14 @@ class Machine():
 
 
 class Zone:
-    def __init__(self, machine, zone_id, data = {}):
-        self._machine = machine
-        self._zone_id = zone_id
+    def __init__(self, api, machine_id, zone_id, data = {}):  
+        self._api = api
+        self._machine_id = machine_id              
+        self._zone_id = zone_id        
         self.zone_state = data
 
     def _set_parameter_value(self, prop, value):
-        self._machine.set_zone_parameter_value(self._zone_id, prop, value)
+        self._api.set_zone_parameter_value(self._machine_id, self._zone_id, prop, value)
 
     @property
     def zone_state(self):
