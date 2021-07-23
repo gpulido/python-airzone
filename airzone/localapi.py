@@ -112,7 +112,7 @@ class Machine():
         self.update_zones()
 
     def discover_zones(self):
-        self._zones = {z['zoneID']: Zone(self, z['zoneID'], z) for z in self.machine_state if z['zoneID'] != 0}
+        self._zones = {z['zoneID']: Zone(self._api, self._machine_id, z['zoneID'], z) for z in self.machine_state if z['zoneID'] != 0}
         self._system_zone = next(iter(self._zones))
 
     def update_zones(self):
