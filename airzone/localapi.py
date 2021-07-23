@@ -98,6 +98,7 @@ class Machine():
         self._machine_state = None
         self._machine_zone_state = None
         self._zones = {}
+        self._system_zone_id = 0
         
         self.retrieve_state()
 
@@ -113,14 +114,14 @@ class Machine():
 
     def discover_zones(self):
         self._zones = {z['zoneID']: Zone(self._api, self._machine_id, z['zoneID'], z) for z in self.machine_state if z['zoneID'] != 0}
-        self._system_zone = next(iter(self._zones))
+        self._system_zone_id = next(iter(self._zones))
 
     def update_zones(self):
         if self._zones == {}:
             self.discover_zones()
         for z in self.machine_state:
             self._zones[z['zoneID']].zone_state = z
-            if z['zoneID'] == self._system_zone:
+            if z['zoneID'] == self._system_zone_id:
                 self._machine_zone_state = z
                     
     @property
@@ -144,7 +145,10 @@ class Machine():
 
     @speed.setter
     def speed(self, speed):
-        value = self._api.set_zone_parameter_value(self._machine_id, self._system_zone, 'speed', speed)
+        s = speed
+        if isinstance(speed, IntEnum):
+            s = speed.value
+        value = self._api.set_zone_parameter_value(self._machine_id, 0, 'speed', s)
         if value:
             self._machine_zone_state['speed'] = value
 
@@ -154,7 +158,10 @@ class Machine():
 
     @operation_mode.setter
     def operation_mode(self, mode):
-        value = self.set_zone_parameter_value(self._machine_id, self._system_zone, 'mode', mode)
+        m = mode
+        if isinstance(mode, IntEnum):
+            m = mode.value
+        value = self._api.set_zone_parameter_value(self._machine_id, 0, 'mode', m)
         if value:
             self._machine_zone_state['mode'] = value
 
