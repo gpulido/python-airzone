@@ -84,6 +84,9 @@ class API():
         except requests.exceptions.RequestException as e:
             _LOGGER.exception(str(e))
 
+    def __str__(self):
+        return f'LocalApi: {str(self._machine_ip)}'
+
     
 
 class Machine():
@@ -161,7 +164,7 @@ class Machine():
 
     @property
     def unique_id(self):
-        return f'Local_Api{self._machine_id}_{str(self._machine_ip)}'
+        return f'{str(self._api)}_{self._machine_id}'
 
     def __str__(self):
         zs = "\n".join([str(z) for z in self.zones])
