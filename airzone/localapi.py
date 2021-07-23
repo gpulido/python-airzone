@@ -97,10 +97,8 @@ class Machine():
         self._error_log = []        
         self._machine_state = None
         self._machine_zone_state = None
-        self._zones = {}
-        self._system_zone_id = 0
-        
-        self.retrieve_state()
+        self._zones = {}                
+        self.retrieve_machine_state()
 
     @property
     def machine_state(self):
@@ -110,35 +108,26 @@ class Machine():
     def machine_state(self, value):
         self._machine_state = value
         _LOGGER.debug(value)
-        self.update_zones()
-
-    def discover_zones(self):
-        self._zones = {z['zoneID']: Zone(self._api, self._machine_id, z['zoneID'], z) for z in self.machine_state if z['zoneID'] != 0}
-        self._system_zone_id = next(iter(self._zones))
-
-    def update_zones(self):
-        if self._zones == {}:
-            self.discover_zones()
-        for z in self.machine_state:
-            self._zones[z['zoneID']].zone_state = z
-            if z['zoneID'] == self._system_zone_id:
-                self._machine_zone_state = z
+     
+ 
+    def retrieve_machine_state(self):
+        state = self._api.retrieve_state(self._machine_id, 0)
+        if state is not None and len(state) > 0:
+            if self._zones == {}:
+                self.discover_zones(state)            
+            self.machine_state = state[0]
+    
+    def discover_zones(self, state):
+        self._zones = {z['zoneID']: Zone(self._api, self._machine_id, z['zoneID']) for z in state if z['zoneID'] != 0}        
                     
     @property
     def zones(self):
         return self._zones.values()
-
-
-    def retrieve_state(self):
-        state = self._api.retrieve_state(self._machine_id, 0)
-        if state is not None:
-            self.machine_state = state
-            
-
+          
     @property
     def speed(self):
-        if 'speed' in self._machine_zone_state:
-            speed = self._machine_zone_state['speed']
+        if 'speed' in self.machine_state:
+            speed = self.machine_state['speed']
             if speed is not None:
                 return Speed(speed)
         return Speed.AUTO
@@ -150,11 +139,11 @@ class Machine():
             s = speed.value
         value = self._api.set_zone_parameter_value(self._machine_id, 0, 'speed', s)
         if value:
-            self._machine_zone_state['speed'] = value
+            self.machine_state['speed'] = value
 
     @property
     def operation_mode(self):
-        return OperationMode(self._machine_zone_state['mode'])
+        return OperationMode(self.machine_state['mode'])
 
     @operation_mode.setter
     def operation_mode(self, mode):
@@ -163,15 +152,16 @@ class Machine():
             m = mode.value
         value = self._api.set_zone_parameter_value(self._machine_id, 0, 'mode', m)
         if value:
-            self._machine_zone_state['mode'] = value
+            self.machine_state['mode'] = value
 
     @property
     def units(self):
-        return TempUnits(self._machine_zone_state['units'])        
+        return TempUnits(self.machine_state['units'])        
 
     @property
     def unique_id(self):
         return f'{str(self._api)}_{self._machine_id}'
+
 
     def __str__(self):
         zs = "\n".join([str(z) for z in self.zones])
@@ -181,14 +171,16 @@ class Machine():
 
 
 class Zone:
-    def __init__(self, api, machine_id, zone_id, data = {}):  
+    def __init__(self, api, machine_id, zone_id):  
         self._api = api
         self._machine_id = machine_id              
         self._zone_id = zone_id        
-        self.zone_state = data
+        self.zone_state = None
+        self.retrieve_zone_state()
 
     def _set_parameter_value(self, prop, value):
         self._api.set_zone_parameter_value(self._machine_id, self._zone_id, prop, value)
+
 
     @property
     def zone_state(self):
@@ -197,6 +189,11 @@ class Zone:
     @zone_state.setter
     def zone_state(self, value):
         self._zone_state = value
+
+    def retrieve_zone_state(self):
+        state = self._api.retrieve_state(self._machine_id, self._zone_id)        
+        if state is not None and len(state)> 0:
+            self.zone_state = state[0]
 
     def is_on(self):
         return self.zone_state['on']
