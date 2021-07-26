@@ -109,7 +109,7 @@ class Machine():
         if self._zones == {}:
             self.discover_zones()
         for zone in self._zones.values():
-            zone.retrieve_zone_status()
+            zone.retrieve_zone_state()
 
     @property            
     def zones(self):
