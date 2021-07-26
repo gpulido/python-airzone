@@ -463,7 +463,7 @@ class Zone():
 
     @property
     def dif_current_temp(self):
-        return self.signal_temperature_value - self.local_temperature()
+        return self.signal_temperature_value - self.local_temperature
     
     @deprecated('use property')
     def get_dif_current_temp(self):
