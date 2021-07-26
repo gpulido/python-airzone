@@ -149,7 +149,7 @@ class Machine():
     
     @operation_mode.setter
     def operation_mode(self, operationMode):
-        self.write_register(0, OperationMode[OperationMode].value)
+        self.write_register(0, OperationMode[operationMode].value)
     
 
     @deprecated('use property')
