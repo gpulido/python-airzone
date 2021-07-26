@@ -215,7 +215,7 @@ class Zone():
         self.write_register(address, new_value)
 
     def __str__(self):
-        return "Zone with id: " + str(self.zone_id) + \
+        return "Zone with id: " + str(self._zone_id) + \
                " ZoneMode: " + str(self.get_zone_mode()) + \
                " Tacto On: " + str(self.is_tacto_on()) + \
                " Hold On: " + str(self.is_zone_hold())
