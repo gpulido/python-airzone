@@ -202,7 +202,7 @@ class Zone():
 
     def __init__(self, machine, zone_id):
         self._machine = machine
-        self.zoneId = zone_id    
+        self._zone_id = zone_id    
         self.base_zone = zone_id * 256
         self._zone_state = None
         self.retrieve_zone_state()
@@ -471,4 +471,4 @@ class Zone():
 
     @property
     def unique_id(self):
-        return f'{str(self._machine)}_Z{self.zoneId}'
+        return f'{str(self._machine)}_Z{self._zone_id}'
