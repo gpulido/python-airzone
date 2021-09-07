@@ -175,8 +175,9 @@ class Zone:
         self._api = api
         self._machine_id = machine_id              
         self._zone_id = zone_id        
-        self.zone_state = None
-        self.retrieve_zone_state()
+        self.zone_state = None      
+        self._name = f"Zone_{zone_id}"
+        self.retrieve_zone_state()        
 
     def _set_parameter_value(self, prop, value):
         self._api.set_zone_parameter_value(self._machine_id, self._zone_id, prop, value)
@@ -214,11 +215,17 @@ class Zone:
 
     @property
     def name(self):
-        return self.zone_state['name']
+        # Old fw doesn't expose the name
+        if 'name' in self.zone_state:
+            return self.zone_state['name']
+        return self._name
 
     @name.setter
     def name(self, name):
-        self._set_parameter_value('name', name)
+        # Old fw doesn't expose the name
+        self._name = name
+        if 'name' in self.zone_state:
+            self._set_parameter_value('name', name)
 
     @property
     def max_temp(self):
