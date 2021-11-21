@@ -110,12 +110,17 @@ class Machine():
         _LOGGER.debug(value)
      
  
-    def retrieve_machine_state(self):
+    def retrieve_machine_state(self, update_zones = False):
         state = self._api.retrieve_state(self._machine_id, 0)
         if state is not None and len(state) > 0:
             if self._zones == {}:
-                self.discover_zones(state)            
+                self.discover_zones(state)
             self.machine_state = state[0]
+            if update_zones:
+                for z in state:
+                    zone_id = z['zoneID']
+                    if zone_id in self._zones:
+                        self._zones[zone_id].zone_state = z
     
     def discover_zones(self, state):
         self._zones = {z['zoneID']: Zone(self._api, self._machine_id, z['zoneID']) for z in state if z['zoneID'] != 0}        
