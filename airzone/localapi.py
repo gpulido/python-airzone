@@ -104,10 +104,15 @@ class Machine():
     def machine_state(self):
         return self._machine_state
 
+
     @machine_state.setter
     def machine_state(self, value):
         self._machine_state = value
         _LOGGER.debug(value)
+    
+    @property
+    def machine_id(self):
+        return self._machine_id
      
  
     def retrieve_machine_state(self, update_zones = False):
@@ -123,7 +128,7 @@ class Machine():
                         self._zones[zone_id].zone_state = z
     
     def discover_zones(self, state):
-        self._zones = {z['zoneID']: Zone(self._api, self._machine_id, z['zoneID']) for z in state if z['zoneID'] != 0}        
+        self._zones = {z['zoneID']: Zone(self._api, self, z['zoneID']) for z in state if z['zoneID'] != 0}        
                     
     @property
     def zones(self):
@@ -176,9 +181,10 @@ class Machine():
 
 
 class Zone:
-    def __init__(self, api, machine_id, zone_id):  
+    def __init__(self, api, machine, zone_id):  
         self._api = api
-        self._machine_id = machine_id              
+        self._machine = machine
+        self._machine_id = self.machine.machine_id              
         self._zone_id = zone_id        
         self.zone_state = None      
         self._name = f"Zone_{zone_id}"
@@ -196,6 +202,10 @@ class Zone:
     def zone_state(self, value):
         self._zone_state = value
 
+    @property
+    def machine(self):
+        return self._machine
+
     def retrieve_zone_state(self):
         state = self._api.retrieve_state(self._machine_id, self._zone_id)        
         if state is not None and len(state)> 0:
@@ -208,7 +218,7 @@ class Zone:
         self._set_parameter_value('on', 1)
 
     def turn_off(self):
-        self._set_parameter_value('on', 0)
+        self._set_parameter_value('on', 0)    
 
     @property
     def signal_temperature_value(self):
