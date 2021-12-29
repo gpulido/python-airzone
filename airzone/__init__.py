@@ -1,27 +1,26 @@
 #!/usr/bin/python
 
 
-
 def airzone_factory(address, port, machineId, system="innobus", **kwargs):
     if system == 'localapi':        
         from airzone.localapi import Machine, API
         api = API(address, port)
         m = Machine(api, machineId)
     else:
-        from airzone.protocol import Gateway
-        gat = Gateway(address, port)
+        from airzone.protocol import Gateway, modbus_factory        
+        gat = Gateway(modbus_factory(address, port, kwargs.pop("use_rtu_framer", False)))
         if system == 'innobus':
             from airzone.innobus import Machine
             m = Machine(gat, machineId)
         else:
-            from airzone.aido import Aido
+            from airzone.aido import Aido            
             m = Aido(gat, machineId, **kwargs)    
     return m
 
 
-if __name__ == '__main__':
-    aido_args = {"has_louvres": False, "speed_as_per": True}
-    m = airzone_factory('modbus.local', 5020, 1, "aido", **aido_args)
+if __name__ == '__main__':     
+    args = {"has_louvres": False, "speed_as_per": True, "use_rtu_framer": False}
+    m = airzone_factory('modbus.local', 5020, 1, "innobus", **args)
     # m = airzone_factory('modbus.local', 5020, 1, "aido")
 
     z = m.get_zones()[0]

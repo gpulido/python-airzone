@@ -1,8 +1,26 @@
 import logging
 from threading import Lock
 
-from airzone.utils import *
 from pymodbus.client.sync import ModbusTcpClient as ModbusClient  # type: ignore
+from pymodbus.transaction import ModbusRtuFramer  # type: ignore
+
+from airzone.utils import *
+
+
+def modbus_factory(url, port, use_rtu_framer = False):
+    """                
+        Builds the modbus client
+        WIP to add more types.
+        Arguments:
+            url {String} -- Address where the master is listening
+            port {String} -- Serial port string as it is used in pyserial
+
+    """
+    if use_rtu_framer:
+        client = ModbusClient(url, port, ModbusRtuFramer)
+    else:
+        client = ModbusClient(url, port)    
+    return client
 
 
 def state_value(state, address, init=0, end=15):
@@ -72,28 +90,16 @@ UNIT = 0x1
 
 class Gateway():
 
-    def __init__(self, url, port):
+    def __init__(self, modbus_client):
         """                
         Arguments:
-            url {String} -- Address where the master is listening
-            port {String} -- Serial port string as it is used in pyserial
+            modbus_Client: an already configured ModbusClient to use
+        """ 
+        self._lock = Lock()        
+        self.client = modbus_client
+        with self._lock:           
+            self.client.connect()        
 
-        Keyword Arguments:
-            discover {bool} -- True if the gateway should try to discover 
-                               the devices on init (default: {True})
-        """
-        self._url = url
-        self._port = port
-        self._lock = Lock()
-        self.config_client()
-
-    def config_client(self):
-        """
-        Configure the serial port
-        """
-        with self._lock:
-            self.client = ModbusClient(self._url, port=self._port)
-            self.client.connect()
 
     # innobus doc type 3
     def read_holding_registers(self, machineid, address, num_registers):
