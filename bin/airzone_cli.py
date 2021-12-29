@@ -13,7 +13,7 @@ except PackageNotFoundError:
 
 
 def action(args):
-    extra_args = {"use_rtu_frames": args.rtuframe}
+    extra_args = {"use_rtu_framer": args.rtuframer}
     m = airzone.airzone_factory(args.address, args.port, args.machine, args.system, **extra_args)
     if args.state == 'str':
         print(str(m))
@@ -29,7 +29,7 @@ parser.add_argument("--machine", type=int, default=1, help="Machine number where
 parser.add_argument("--system", choices=['innobus', 'aido', 'localapi'], default='innobus', help="Type of Airzone System")
 parser.add_argument("--state", choices=['str', 'raw'], default='str',
                     help="Get the formatted state, or the raw machine state")
-parser.add_argument("--rtuframe", type=bool, default= False, help="use rtu frames for modbus.")
+parser.add_argument("--rtuframer", type=bool, default= False, help="use rtu framer for modbus.")
 parser.set_defaults(func=action)
 
 args = parser.parse_args()
