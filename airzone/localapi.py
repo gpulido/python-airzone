@@ -234,25 +234,17 @@ class Zone:
 
     @property
     def name(self):
-<<<<<<< HEAD
         # Old fw doesn't expose the name
         if 'name' in self.zone_state:
             return self.zone_state['name']
-=======
->>>>>>> provide a generic zone name if the state doesn't provide it'
         return self._name
 
     @name.setter
     def name(self, name):
-<<<<<<< HEAD
         # Old fw doesn't expose the name
         self._name = name
         if 'name' in self.zone_state:
             self._set_parameter_value('name', name)
-=======
-        self._set_parameter_value('name', name)
-        self._name = name
->>>>>>> provide a generic zone name if the state doesn't provide it'
 
     @property
     def max_temp(self):

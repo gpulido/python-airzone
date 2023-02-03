@@ -1,7 +1,7 @@
 import logging
 from threading import Lock
 
-from pymodbus.client.sync import ModbusTcpClient as ModbusClient  # type: ignore
+from pymodbus.client import ModbusTcpClient as ModbusClient  # type: ignore
 from pymodbus.transaction import ModbusRtuFramer  # type: ignore
 
 from airzone.utils import *
