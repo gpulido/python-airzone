@@ -136,4 +136,4 @@ class Gateway():
             print(test)
     
     def __str__(self):
-        return f'Modbus_{self._url}:{self._port}'
+        return str(self.client)
