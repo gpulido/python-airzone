@@ -90,6 +90,8 @@ class Aido():
             self._write_register(1, int(value * 10))
 
     def get_local_temperature(self):
+        if self._machine_state == None:
+            return -1
         return self._machine_state[2] / 10
     
     def get_operation_mode(self):
