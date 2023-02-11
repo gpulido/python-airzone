@@ -1,8 +1,9 @@
 import datetime
 from enum import Enum, IntEnum
 
-from airzone.protocol import *
 from deprecated import deprecated  # type: ignore
+
+from airzone.protocol import *
 
 
 class OperationMode(Enum):
@@ -471,4 +472,4 @@ class Zone():
 
     @property
     def unique_id(self):
-        return f'{str(self._machine)}_Z{self._zone_id}'
+        return f'{self._machine.unique_id}_Z{self._zone_id}'
