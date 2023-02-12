@@ -1,4 +1,5 @@
 import logging
+import time
 from threading import Lock
 
 from pymodbus.client import ModbusTcpClient as ModbusClient  # type: ignore
@@ -98,7 +99,8 @@ class Gateway():
         self._lock = Lock()        
         self.client = modbus_client
         with self._lock:           
-            self.client.connect()        
+            self.client.connect()
+            time.sleep(2)       
 
 
     # innobus doc type 3

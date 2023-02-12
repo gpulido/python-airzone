@@ -67,7 +67,9 @@ class Aido():
             self._machineId, address, value)
 
     def _retrieve_machine_state(self):
-        self._machine_state = self._read_registers(0, 7)
+        new_state = self._read_registers(0, 7)
+        if new_state != None:
+            self._machine_state = new_state
     
     def get_is_machine_on(self):
         if self._machine_state == None:
