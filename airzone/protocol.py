@@ -2,8 +2,8 @@ import logging
 import time
 from threading import Lock
 
+from pymodbus import FramerType  # type: ignore
 from pymodbus.client import ModbusTcpClient as ModbusClient  # type: ignore
-from pymodbus.transaction import ModbusRtuFramer  # type: ignore
 
 from airzone.utils import *
 
@@ -18,7 +18,7 @@ def modbus_factory(url, port, use_rtu_framer = False):
 
     """
     if use_rtu_framer:
-        client = ModbusClient(url, port, ModbusRtuFramer)
+        client = ModbusClient(url, port, framer=FramerType.RTU)
     else:
         client = ModbusClient(url, port)    
     return client
