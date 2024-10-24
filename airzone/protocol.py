@@ -18,9 +18,9 @@ def modbus_factory(url, port, use_rtu_framer = False):
 
     """
     if use_rtu_framer:
-        client = ModbusClient(url, port, framer=FramerType.RTU)
+        client = ModbusClient(url, port=port, framer=FramerType.RTU)
     else:
-        client = ModbusClient(url, port)    
+        client = ModbusClient(url, port=port)    
     return client
 
 
