@@ -1,4 +1,4 @@
-pyModbus>=3.7.0
+pyModbus==3.7.0
 pybase64
 importlib-metadata
 requests
