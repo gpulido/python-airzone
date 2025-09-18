@@ -111,7 +111,7 @@ class Gateway():
         try:
             with self._lock:
                 response = self.client.read_holding_registers(
-                    address=address, count=num_registers, slave=machineid)
+                    address=address, count=num_registers, device_id=machineid)
 
                 logging.debug('response: ' + str(response.registers))
                 return response.registers
@@ -125,7 +125,7 @@ class Gateway():
         try:
             with self._lock:
                 response = self.client.read_input_registers(
-                    address=address, count=num_registers, slave=machineid)
+                    address=address, count=num_registers, device_id=machineid)
                 logging.debug('response: ' + str(response.registers))
                 return response.registers
         except:
@@ -134,7 +134,7 @@ class Gateway():
 
     def write_single_register(self, machineid, address, value):
         with self._lock:
-            test = self.client.write_register(address=address, value=value, slave=machineid)
+            test = self.client.write_register(address=address, value=value, device_id=machineid)
             print(test)
     
     def __str__(self):
